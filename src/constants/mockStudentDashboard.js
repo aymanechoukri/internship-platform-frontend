@@ -1,0 +1,153 @@
+/**
+ * @file constants/mockStudentDashboard.js
+ * @description Realistic sample mock data for Student Dashboard.
+ * Clearly designated as frontend mock data — not connected to backend.
+ */
+
+export const MOCK_STUDENT_PROFILE = {
+  id: 'std-101',
+  fullName: 'Sarah Chen',
+  email: 'sarah.chen@university.edu',
+  university: 'Stanford University',
+  degree: 'B.S. in Computer Science',
+  graduationYear: '2026',
+  avatar: '',
+  bio: 'Junior CS student passionate about distributed systems and interactive web apps.',
+};
+
+export const MOCK_STUDENT_STATS = [
+  {
+    id: 'stat-total',
+    label: 'Total Applications',
+    value: 12,
+    change: '+3 this month',
+    changeType: 'positive',
+    icon: 'document',
+  },
+  {
+    id: 'stat-pending',
+    label: 'Pending Review',
+    value: 5,
+    change: 'Active in pipeline',
+    changeType: 'neutral',
+    icon: 'clock',
+  },
+  {
+    id: 'stat-accepted',
+    label: 'Accepted Offers',
+    value: 2,
+    change: '+1 this week',
+    changeType: 'positive',
+    icon: 'check',
+  },
+  {
+    id: 'stat-rejected',
+    label: 'Not Selected',
+    value: 5,
+    change: 'Archived',
+    changeType: 'muted',
+    icon: 'x',
+  },
+];
+
+export const MOCK_STUDENT_APPLICATIONS = [
+  {
+    id: 'app-01',
+    internshipTitle: 'Frontend Engineering Intern',
+    companyName: 'Stripe',
+    companyLogo: '',
+    location: 'San Francisco, CA (Hybrid)',
+    appliedDate: 'May 10, 2025',
+    stipend: '$55/hr',
+    status: 'under_review',
+    statusLabel: 'Under Review',
+    badgeVariant: 'warning',
+  },
+  {
+    id: 'app-02',
+    internshipTitle: 'Full Stack Developer Intern',
+    companyName: 'Datadog',
+    companyLogo: '',
+    location: 'New York, NY',
+    appliedDate: 'May 04, 2025',
+    stipend: '$50/hr',
+    status: 'accepted',
+    statusLabel: 'Accepted',
+    badgeVariant: 'success',
+  },
+  {
+    id: 'app-03',
+    internshipTitle: 'Product Design Intern',
+    companyName: 'Figma',
+    companyLogo: '',
+    location: 'Remote',
+    appliedDate: 'Apr 28, 2025',
+    stipend: '$48/hr',
+    status: 'interviewing',
+    statusLabel: 'Interviewing',
+    badgeVariant: 'primary',
+  },
+  {
+    id: 'app-04',
+    internshipTitle: 'Software Engineer Intern - Core',
+    companyName: 'Linear',
+    companyLogo: '',
+    location: 'Remote',
+    appliedDate: 'Apr 20, 2025',
+    stipend: '$52/hr',
+    status: 'rejected',
+    statusLabel: 'Not Selected',
+    badgeVariant: 'danger',
+  },
+  {
+    id: 'app-05',
+    internshipTitle: 'Data Analytics Intern',
+    companyName: 'Spotify',
+    companyLogo: '',
+    location: 'Boston, MA (Hybrid)',
+    appliedDate: 'Apr 15, 2025',
+    stipend: '$45/hr',
+    status: 'under_review',
+    statusLabel: 'Under Review',
+    badgeVariant: 'warning',
+  },
+];
+
+export const MOCK_RECOMMENDED_INTERNSHIPS = [
+  {
+    id: 'rec-01',
+    title: 'React / Next.js Engineer Intern',
+    company: 'Vercel',
+    location: 'Remote · Global',
+    type: 'Full-time · Summer 2025',
+    duration: '12 weeks',
+    stipend: '$55/hr',
+    tags: ['React', 'Next.js', 'Tailwind CSS'],
+    matchScore: 98,
+    deadline: 'Closing in 5 days',
+  },
+  {
+    id: 'rec-02',
+    title: 'AI Platform Engineering Intern',
+    company: 'Anthropic',
+    location: 'San Francisco, CA (Hybrid)',
+    type: 'Full-time · Summer 2025',
+    duration: '14 weeks',
+    stipend: '$62/hr',
+    tags: ['Python', 'LLMs', 'React'],
+    matchScore: 94,
+    deadline: 'Closing in 10 days',
+  },
+  {
+    id: 'rec-03',
+    title: 'Software Engineer Intern - Web Infra',
+    company: 'Airbnb',
+    location: 'San Francisco, CA',
+    type: 'Full-time · Summer 2025',
+    duration: '12 weeks',
+    stipend: '$58/hr',
+    tags: ['JavaScript', 'Node.js', 'GraphQL'],
+    matchScore: 91,
+    deadline: 'Closing in 2 weeks',
+  },
+];

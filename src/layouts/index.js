@@ -4,4 +4,5 @@
  */
 
 export { AuthLayout } from './AuthLayout.jsx';
+export { DashboardLayout } from './DashboardLayout.jsx';
 
