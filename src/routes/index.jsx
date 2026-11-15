@@ -1,11 +1,40 @@
 /**
  * @file routes/index.jsx
- * @description Application router root.
- * Declares all route definitions and wires them to their page components.
- * Protected routes and role-based guards will be added here when pages are built.
+ * @description Central routing configuration for the Internship Platform.
+ * Configures all public authentication routes nested inside AuthLayout.
  */
 
-// Routes will be configured here in Task 4 when React Router is installed.
-// Placeholder to establish the module and import path.
+import { createBrowserRouter, Navigate } from 'react-router-dom';
+import { ROUTES } from '../constants/routes.js';
+import { AuthLayout } from '../layouts/AuthLayout.jsx';
+import { ForgotPasswordPage, LoginPage, RegisterPage } from '../pages/auth/index.js';
 
-export {};
+export const router = createBrowserRouter([
+  {
+    element: <AuthLayout />,
+    children: [
+      {
+        path: ROUTES.LOGIN,
+        element: <LoginPage />,
+      },
+      {
+        path: ROUTES.REGISTER,
+        element: <RegisterPage />,
+      },
+      {
+        path: ROUTES.FORGOT_PASSWORD,
+        element: <ForgotPasswordPage />,
+      },
+    ],
+  },
+  {
+    path: ROUTES.HOME,
+    element: <Navigate to={ROUTES.LOGIN} replace />,
+  },
+  {
+    path: '*',
+    element: <Navigate to={ROUTES.LOGIN} replace />,
+  },
+]);
+
+export default router;

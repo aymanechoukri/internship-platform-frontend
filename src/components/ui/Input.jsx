@@ -83,7 +83,7 @@ export function Input({
         />
 
         {rightIcon && (
-          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none">
+          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted flex items-center">
             {rightIcon}
           </span>
         )}

@@ -9,6 +9,7 @@
 import { createContext, useCallback, useMemo, useState } from 'react';
 
 /** @type {React.Context<AuthContextValue|undefined>} */
+// eslint-disable-next-line react-refresh/only-export-components
 export const AuthContext = createContext(undefined);
 
 /**
