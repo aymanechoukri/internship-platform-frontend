@@ -8,3 +8,5 @@ export * from './routes.js';
 export * from './roles.js';
 export * from './mockStudentDashboard.js';
 export * from './mockCompanyDashboard.js';
+export * from './mockInternships.js';
+export * from './mockCompanyInternships.js';

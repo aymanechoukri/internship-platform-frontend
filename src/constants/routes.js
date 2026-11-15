@@ -13,9 +13,11 @@ export const ROUTES = {
 
   // Student
   STUDENT_DASHBOARD: '/student/dashboard',
+  STUDENT_INTERNSHIPS: '/student/internships',
+  STUDENT_INTERNSHIP_DETAILS: '/student/internships/:id',
   STUDENT_PROFILE: '/student/profile',
   STUDENT_APPLICATIONS: '/student/applications',
-  STUDENT_SEARCH: '/student/search',
+  STUDENT_SEARCH: '/student/internships',
 
   // Company
   COMPANY_DASHBOARD: '/company/dashboard',

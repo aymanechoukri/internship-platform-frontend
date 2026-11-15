@@ -4,3 +4,4 @@
  */
 
 export { CompanyDashboard } from './CompanyDashboard.jsx';
+export { CompanyInternshipsPage } from './CompanyInternshipsPage.jsx';

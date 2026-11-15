@@ -138,7 +138,7 @@ export function DashboardLayout({ children }) {
       ]
     : [
         { label: 'Dashboard', to: ROUTES.STUDENT_DASHBOARD, icon: <GridIcon />, badge: null },
-        { label: 'Browse Internships', to: ROUTES.STUDENT_SEARCH, icon: <BriefcaseIcon />, badge: 'New' },
+        { label: 'Browse Internships', to: ROUTES.STUDENT_INTERNSHIPS, icon: <BriefcaseIcon />, badge: 'New' },
         { label: 'My Applications', to: ROUTES.STUDENT_APPLICATIONS, icon: <DocumentTextIcon />, badge: '5' },
         { label: 'My Profile', to: ROUTES.STUDENT_PROFILE, icon: <UserCircleIcon />, badge: null },
       ];

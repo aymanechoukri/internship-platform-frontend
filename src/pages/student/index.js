@@ -4,3 +4,5 @@
  */
 
 export { StudentDashboard } from './StudentDashboard.jsx';
+export { StudentInternshipsPage } from './StudentInternshipsPage.jsx';
+export { InternshipDetailsPage } from './InternshipDetailsPage.jsx';

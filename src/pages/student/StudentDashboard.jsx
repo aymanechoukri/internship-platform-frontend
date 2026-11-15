@@ -332,9 +332,11 @@ export function StudentDashboard() {
 
               <div className="pt-3 border-t border-border flex items-center justify-between text-xs">
                 <span className="text-[11px] text-warning-600 font-medium">{item.deadline}</span>
-                <Button variant="primary" size="sm">
-                  Apply
-                </Button>
+                <Link to={ROUTES.STUDENT_INTERNSHIPS}>
+                  <Button variant="primary" size="sm">
+                    View & Apply
+                  </Button>
+                </Link>
               </div>
             </Card>
           ))}
