@@ -13,7 +13,7 @@ import { DashboardLayout } from '../layouts/DashboardLayout.jsx';
 import { ForgotPasswordPage, LoginPage, RegisterPage } from '../pages/auth/index.js';
 import { CompanyApplicantsPage, CompanyDashboard, CompanyInternshipsPage, CompanyProfilePage } from '../pages/company/index.js';
 import { AdminDashboardPage } from '../pages/admin/AdminDashboard.jsx';
-import { InternshipDetailsPage, StudentApplicationsPage, StudentDashboard, StudentInternshipsPage, StudentProfilePage } from '../pages/student/index.js';
+import { InternshipDetailsPage, StudentApplicationsPage, StudentDashboard, StudentInternshipsPage, StudentProfilePage, StudentCVPage } from '../pages/student/index.js';
 
 function RequireAuth({ allowedRoles }) {
   const { isAuthenticated, user, isLoading } = useAuth();
@@ -59,6 +59,7 @@ const studentRoutes = [
   { path: ROUTES.STUDENT_INTERNSHIP_DETAILS, element: <InternshipDetailsPage /> },
   { path: ROUTES.STUDENT_APPLICATIONS, element: <StudentApplicationsPage /> },
   { path: ROUTES.STUDENT_PROFILE, element: <StudentProfilePage /> },
+  { path: ROUTES.STUDENT_CV, element: <StudentCVPage /> },
 ];
 
 const companyRoutes = [
