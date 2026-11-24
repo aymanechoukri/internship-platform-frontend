@@ -53,6 +53,7 @@ export function StudentCVPage() {
       anchor.click();
       anchor.remove();
       URL.revokeObjectURL(url);
+      notify("CV downloaded successfully.", "success");
     } catch (err) { setError(err.message || "Unable to download this CV."); notify(err.message || "Unable to download this CV.", "error"); }
     finally { setBusyId(""); }
   };
