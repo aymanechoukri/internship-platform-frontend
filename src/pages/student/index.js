@@ -8,3 +8,4 @@ export { StudentInternshipsPage } from './StudentInternshipsPage.jsx';
 export { InternshipDetailsPage } from './InternshipDetailsPage.jsx';
 export { StudentApplicationsPage } from './StudentApplicationsPage.jsx';
 export { StudentProfilePage } from './StudentProfilePage.jsx';
+export { StudentCVPage } from './StudentCVPage.jsx';
