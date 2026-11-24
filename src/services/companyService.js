@@ -29,7 +29,10 @@ export const updateCompanyApplicationStatus = async (id, status) => unwrap(await
   method: "PATCH",
   body: JSON.stringify({ status }),
 }));
-export const getCompanyNotifications = async () => unwrap(await apiClient("/notifications/me"));
+export const getCompanyNotifications = async () => {
+  const result = await apiClient("/notifications/me");
+  return { notifications: result?.data ?? [], unreadCount: result?.unreadCount ?? 0 };
+};
 export const markCompanyNotificationRead = async (id) => unwrap(await apiClient(`/notifications/${id}/read`, {
   method: "PATCH",
 }));
