@@ -6,7 +6,8 @@ import { useFeedback } from "../../context/FeedbackContext.jsx";
 
 const EMPTY_PROFILE = { companyName: "", website: "", location: "", industry: "", description: "" };
 
-export function CompanyProfilePage() {\n  const { notify } = useFeedback();
+export function CompanyProfilePage() {
+  const { notify } = useFeedback();
   const { user } = useAuth();
   const [profile, setProfile] = useState(EMPTY_PROFILE);
   const [exists, setExists] = useState(false);
@@ -64,7 +65,8 @@ export function CompanyProfilePage() {\n  const { notify } = useFeedback();
       setProfile((current) => ({ ...current, ...data }));
       notify("Company profile saved successfully.", "success");
     } catch (err) {
-      setError(err.message || "Unable to save company profile.");\n      notify(err.message || "Unable to save company profile.", "error");
+      setError(err.message || "Unable to save company profile.");
+      notify(err.message || "Unable to save company profile.", "error");
     } finally {
       setSaving(false);
     }
