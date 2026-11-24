@@ -16,7 +16,7 @@ export function CompanyInternshipsPage() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [notice, setNotice] = useState("");
+  const [, setNotice] = useState("");
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("all");
   const [editing, setEditing] = useState(null);
@@ -72,7 +72,7 @@ export function CompanyInternshipsPage() {
       if (editing) await updateCompanyInternship(editing._id, payload);
       else await createCompanyInternship(payload);
       await load();
-      setNotice(editing ? "Internship updated and sent for administrator review." : "Internship created and sent for administrator review.");
+      notify(editing ? "Internship updated and sent for administrator review." : "Internship created and sent for administrator review.", "success");
       closeForm();
     } catch (err) { setError(err.message || "Unable to save internship."); notify(err.message || "Unable to save internship.", "error"); }
     finally { setSaving(false); }
