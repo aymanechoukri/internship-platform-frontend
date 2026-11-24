@@ -88,7 +88,7 @@ export function AdminDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [actionId, setActionId] = useState('');
   const [error, setError] = useState('');
-  const [notice, setNotice] = useState('');
+  const [, setNotice] = useState('');
 
   const handleSignOut = () => {
     logout();
