@@ -148,7 +148,7 @@ export function InternshipDetailsPage() {
 
     const formData = new FormData(event.currentTarget);
     const application = {
-      id: 'local-' + Date.now(),
+      id: `local-${applications.length + 1}`,
       internshipId: internship.id,
       internshipTitle: internship.title,
       companyName: internship.company,
