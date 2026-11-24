@@ -2,10 +2,11 @@ import { useEffect, useState } from "react";
 import { Badge, Button, Card } from "../../components/ui/index.js";
 import useAuth from "../../hooks/useAuth.js";
 import { createCompanyProfile, getCompanyProfile, updateCompanyProfile } from "../../services/companyService.js";
+import { useFeedback } from "../../context/FeedbackContext.jsx";
 
 const EMPTY_PROFILE = { companyName: "", website: "", location: "", industry: "", description: "" };
 
-export function CompanyProfilePage() {
+export function CompanyProfilePage() {\n  const { notify } = useFeedback();
   const { user } = useAuth();
   const [profile, setProfile] = useState(EMPTY_PROFILE);
   const [exists, setExists] = useState(false);
@@ -61,9 +62,9 @@ export function CompanyProfilePage() {
       const data = exists ? await updateCompanyProfile(payload) : await createCompanyProfile(payload);
       setExists(true);
       setProfile((current) => ({ ...current, ...data }));
-      setNotice("Company profile saved successfully.");
+      notify("Company profile saved successfully.", "success");
     } catch (err) {
-      setError(err.message || "Unable to save company profile.");
+      setError(err.message || "Unable to save company profile.");\n      notify(err.message || "Unable to save company profile.", "error");
     } finally {
       setSaving(false);
     }
@@ -93,7 +94,7 @@ export function CompanyProfilePage() {
           <label className="text-sm font-medium text-text-secondary">Industry<input name="industry" maxLength={100} value={profile.industry} onChange={handleChange} className="mt-1 h-10 w-full rounded-lg border border-border px-3 text-sm text-text-primary" /></label>
           <label className="sm:col-span-2 text-sm font-medium text-text-secondary">Company description<textarea name="description" rows={5} maxLength={2000} value={profile.description} onChange={handleChange} className="mt-1 w-full rounded-lg border border-border p-3 text-sm text-text-primary" /></label>
           <div className="sm:col-span-2 flex items-center justify-between gap-3">
-            <p role="status" className="text-xs text-success-700">{notice}</p>
+            
             <Button type="submit" disabled={saving}>{saving ? "Saving…" : exists ? "Save changes" : "Create company profile"}</Button>
           </div>
         </form>
