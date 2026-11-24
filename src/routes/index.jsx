@@ -10,8 +10,8 @@ import { useAuth } from '../hooks/index.js';
 import { AuthLayout } from '../layouts/AuthLayout.jsx';
 import { DashboardLayout } from '../layouts/DashboardLayout.jsx';
 import { ForgotPasswordPage, LoginPage, RegisterPage } from '../pages/auth/index.js';
-import { CompanyDashboard, CompanyInternshipsPage } from '../pages/company/index.js';
-import { InternshipDetailsPage, StudentDashboard, StudentInternshipsPage } from '../pages/student/index.js';
+import { CompanyApplicantsPage, CompanyDashboard, CompanyInternshipsPage, CompanyProfilePage } from '../pages/company/index.js';
+import { InternshipDetailsPage, StudentApplicationsPage, StudentDashboard, StudentInternshipsPage, StudentProfilePage } from '../pages/student/index.js';
 
 function RequireAuth({ allowedRoles }) {
   const { isAuthenticated, user, isLoading } = useAuth();
@@ -55,15 +55,15 @@ const studentRoutes = [
   { path: ROUTES.STUDENT_DASHBOARD, element: <StudentDashboard /> },
   { path: ROUTES.STUDENT_INTERNSHIPS, element: <StudentInternshipsPage /> },
   { path: ROUTES.STUDENT_INTERNSHIP_DETAILS, element: <InternshipDetailsPage /> },
-  { path: ROUTES.STUDENT_APPLICATIONS, element: <StudentDashboard /> },
-  { path: ROUTES.STUDENT_PROFILE, element: <StudentDashboard /> },
+  { path: ROUTES.STUDENT_APPLICATIONS, element: <StudentApplicationsPage /> },
+  { path: ROUTES.STUDENT_PROFILE, element: <StudentProfilePage /> },
 ];
 
 const companyRoutes = [
   { path: ROUTES.COMPANY_DASHBOARD, element: <CompanyDashboard /> },
   { path: ROUTES.COMPANY_INTERNSHIPS, element: <CompanyInternshipsPage /> },
-  { path: ROUTES.COMPANY_APPLICANTS, element: <CompanyDashboard /> },
-  { path: ROUTES.COMPANY_PROFILE, element: <CompanyDashboard /> },
+  { path: ROUTES.COMPANY_APPLICANTS, element: <CompanyApplicantsPage /> },
+  { path: ROUTES.COMPANY_PROFILE, element: <CompanyProfilePage /> },
 ];
 
 export const router = createBrowserRouter([
