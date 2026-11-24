@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import { Button, Card } from "../../components/ui/index.js";
 import { deleteMyCV, downloadMyCV, getMyCVs, uploadMyCV } from "../../services/cvService.js";
+import { useFeedback } from "../../context/FeedbackContext.jsx";
 
 const formatSize = (bytes) => bytes ? `${(bytes / 1024 / 1024).toFixed(2)} MB` : "Size unavailable";
 
 export function StudentCVPage() {
+  const { notify, confirm } = useFeedback();
   const [cvs, setCvs] = useState([]);
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -34,8 +36,8 @@ export function StudentCVPage() {
       await loadCVs();
       setFile(null);
       formElement.reset();
-      setNotice("CV uploaded successfully.");
-    } catch (err) { setError(err.message || "Unable to upload this CV."); }
+      notify("CV uploaded successfully.", "success");
+    } catch (err) { setError(err.message || "Unable to upload this CV."); notify(err.message || "Unable to upload this CV.", "error"); }
     finally { setUploading(false); }
   };
 
@@ -51,18 +53,18 @@ export function StudentCVPage() {
       anchor.click();
       anchor.remove();
       URL.revokeObjectURL(url);
-    } catch (err) { setError(err.message || "Unable to download this CV."); }
+    } catch (err) { setError(err.message || "Unable to download this CV."); notify(err.message || "Unable to download this CV.", "error"); }
     finally { setBusyId(""); }
   };
 
   const handleDelete = async (cv) => {
-    if (!window.confirm(`Delete ${cv.fileName}?`)) return;
+    if (!(await confirm(`Delete ${cv.fileName}?`, { title: "Delete CV?", confirmText: "Delete file", danger: true }))) return;
     setBusyId(String(cv._id)); setError(""); setNotice("");
     try {
       await deleteMyCV(cv._id);
       setCvs((current) => current.filter((item) => item._id !== cv._id));
-      setNotice("CV deleted.");
-    } catch (err) { setError(err.message || "Unable to delete this CV."); }
+      notify("CV deleted successfully.", "success");
+    } catch (err) { setError(err.message || "Unable to delete this CV."); notify(err.message || "Unable to delete this CV.", "error"); }
     finally { setBusyId(""); }
   };
 
@@ -72,7 +74,7 @@ export function StudentCVPage() {
     <div className="mx-auto max-w-3xl space-y-6">
       <div><h1 className="text-2xl font-bold text-text-primary sm:text-3xl">CV management</h1><p className="mt-1 text-sm text-text-secondary">Upload a PDF CV and manage the documents attached to your student profile.</p></div>
       {error && <p role="alert" className="rounded-lg bg-danger-50 p-3 text-sm text-danger-700">{error}</p>}
-      {notice && <p role="status" className="rounded-lg bg-success-50 p-3 text-sm text-success-700">{notice}</p>}
+      
       <Card padding="lg" className="space-y-4">
         <h2 className="font-semibold text-text-primary">Upload a new CV</h2>
         <p className="text-xs text-text-muted">PDF only · Maximum file size: 5 MB</p>
