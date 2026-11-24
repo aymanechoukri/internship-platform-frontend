@@ -1,364 +1,86 @@
-/**
- * @file pages/student/StudentDashboard.jsx
- * @description Comprehensive Student Dashboard view.
- * Features personalized welcome hero, 4 KPI stats cards, recent applications tracking table,
- * recommended internships cards, and quick browsing action.
- */
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { Avatar, Badge, Button, Card } from "../../components/ui/index.js";
+import useAuth from "../../hooks/useAuth.js";
+import { ROUTES } from "../../constants/routes.js";
+import { getMyApplications } from "../../services/applicationService.js";
+import { getInternships } from "../../services/internshipService.js";
+import { getStudentProfile } from "../../services/studentService.js";
 
-import { useState } from 'react';
-import useAuth from '../../hooks/useAuth.js';
-import useLocalStorage from '../../hooks/useLocalStorage.js';
-import { Link } from 'react-router-dom';
-import { Avatar, Badge, Button, Card } from '../../components/ui/index.js';
-import {
-  MOCK_RECOMMENDED_INTERNSHIPS,
-  MOCK_STUDENT_APPLICATIONS,
-  MOCK_STUDENT_PROFILE,
-} from '../../constants/mockStudentDashboard.js';
-import { ROUTES } from '../../constants/routes.js';
-
-/* ── Inline SVG Icons ── */
-function DocumentCheckIcon() {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
-      <path fillRule="evenodd" d="M4.5 2A1.5 1.5 0 0 0 3 3.5v13A1.5 1.5 0 0 0 4.5 18h11a1.5 1.5 0 0 0 1.5-1.5V7.621a1.5 1.5 0 0 0-.44-1.06l-4.12-4.122A1.5 1.5 0 0 0 11.378 2H4.5Zm4.75 6.75a.75.75 0 0 1 1.5 0v2.546l.943-.943a.75.75 0 1 1 1.06 1.06l-2.25 2.25a.75.75 0 0 1-1.06 0l-2.25-2.25a.75.75 0 1 1 1.06-1.06l.947.947V8.75Z" clipRule="evenodd" />
-    </svg>
-  );
-}
-
-function ClockIcon() {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
-      <path fillRule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm.75-13a.75.75 0 0 0-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 0 0 0-1.5h-3.25V5Z" clipRule="evenodd" />
-    </svg>
-  );
-}
-
-function CheckBadgeIcon() {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
-      <path fillRule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm3.857-9.809a.75.75 0 0 0-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 1 0-1.06 1.061l2.5 2.5a.75.75 0 0 0 1.137-.089l4-5.5Z" clipRule="evenodd" />
-    </svg>
-  );
-}
-
-function XCircleIcon() {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
-      <path fillRule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16ZM8.28 7.22a.75.75 0 0 0-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 1 0 1.06 1.06L10 11.06l1.72 1.72a.75.75 0 1 0 1.06-1.06L11.06 10l1.72-1.72a.75.75 0 0 0-1.06-1.06L10 8.94 8.28 7.22Z" clipRule="evenodd" />
-    </svg>
-  );
-}
-
-function SparklesIcon() {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
-      <path d="M15.98 1.804a1 1 0 0 0-1.96 0l-.24 1.192a8.03 8.03 0 0 1-6.19 6.19l-1.19.24a1 1 0 0 0 0 1.96l1.19.24a8.03 8.03 0 0 1 6.19 6.19l.24 1.19a1 1 0 0 0 1.96 0l.24-1.19a8.03 8.03 0 0 1 6.19-6.19l1.19-.24a1 1 0 0 0 0-1.96l-1.19-.24a8.03 8.03 0 0 1-6.19-6.19l-.24-1.192ZM4.444 14.288a.75.75 0 0 0-1.47 0l-.13.65a4.015 4.015 0 0 1-3.09 3.09l-.65.13a.75.75 0 0 0 0 1.47l.65.13a4.015 4.015 0 0 1 3.09 3.09l.13.65a.75.75 0 0 0 1.47 0l.13-.65a4.015 4.015 0 0 1 3.09-3.09l.65-.13a.75.75 0 0 0 0-1.47l-.65-.13a4.015 4.015 0 0 1-3.09-3.09l-.13-.65Z" />
-    </svg>
-  );
-}
-
-function ArrowRightIcon() {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
-      <path fillRule="evenodd" d="M3 10a.75.75 0 0 1 .75-.75h10.638L10.23 5.29a.75.75 0 1 1 1.04-1.08l5.5 5.25a.75.75 0 0 1 0 1.08l-5.5 5.25a.75.75 0 1 1-1.04-1.08l4.158-3.96H3.75A.75.75 0 0 1 3 10Z" clipRule="evenodd" />
-    </svg>
-  );
-}
+const STATUS = {
+  Pending: { label: "Pending", variant: "warning" },
+  Accepted: { label: "Accepted", variant: "success" },
+  Rejected: { label: "Rejected", variant: "danger" },
+};
 
 export function StudentDashboard() {
   const { user } = useAuth();
-  const [applications] = useLocalStorage('student-applications', MOCK_STUDENT_APPLICATIONS);
-  const [profile] = useLocalStorage('student-profile', {
-    ...MOCK_STUDENT_PROFILE,
-    fullName: user?.fullName ?? user?.name ?? MOCK_STUDENT_PROFILE.fullName,
-    email: user?.email ?? MOCK_STUDENT_PROFILE.email,
-  });
-  const [filterStatus, setFilterStatus] = useState('all');
+  const [profile, setProfile] = useState(null);
+  const [applications, setApplications] = useState([]);
+  const [recommended, setRecommended] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [profileMissing, setProfileMissing] = useState(false);
+  const [error, setError] = useState("");
 
-  const dashboardName = user?.fullName ?? user?.name ?? profile.fullName;
-  const pendingCount = applications.filter((app) => ['submitted', 'under_review', 'interviewing'].includes(app.status)).length;
-  const acceptedCount = applications.filter((app) => app.status === 'accepted').length;
-  const rejectedCount = applications.filter((app) => app.status === 'rejected').length;
-  const dashboardStats = [
-    { id: 'stat-total', label: 'Total Applications', value: applications.length, change: 'Saved applications', changeType: 'neutral', icon: 'document' },
-    { id: 'stat-pending', label: 'In Progress', value: pendingCount, change: 'Awaiting an update', changeType: 'neutral', icon: 'clock' },
-    { id: 'stat-accepted', label: 'Accepted Offers', value: acceptedCount, change: 'Positive outcomes', changeType: 'positive', icon: 'check' },
-    { id: 'stat-rejected', label: 'Not Selected', value: rejectedCount, change: 'Closed applications', changeType: 'muted', icon: 'x' },
-  ];
+  useEffect(() => {
+    let active = true;
+    Promise.allSettled([getStudentProfile(), getMyApplications(), getInternships({ page: 1, limit: 3 })])
+      .then(([profileResult, applicationsResult, internshipsResult]) => {
+        if (!active) return;
+        if (profileResult.status === "fulfilled") setProfile(profileResult.value);
+        else if (/not found/i.test(profileResult.reason?.message || "")) setProfileMissing(true);
+        else setError(profileResult.reason?.message || "Unable to load profile.");
+        if (applicationsResult.status === "fulfilled") setApplications(applicationsResult.value);
+        else if (!/not found/i.test(applicationsResult.reason?.message || "")) setError(applicationsResult.reason?.message || "Unable to load applications.");
+        if (internshipsResult.status === "fulfilled") setRecommended(internshipsResult.value.internships);
+        else setError(internshipsResult.reason?.message || "Unable to load internship recommendations.");
+      })
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, []);
 
-  const getStatIcon = (iconName) => {
-    switch (iconName) {
-      case 'document':
-        return <DocumentCheckIcon />;
-      case 'clock':
-        return <ClockIcon />;
-      case 'check':
-        return <CheckBadgeIcon />;
-      case 'x':
-        return <XCircleIcon />;
-      default:
-        return <DocumentCheckIcon />;
-    }
-  };
+  if (loading) return <p className="py-12 text-center text-sm text-text-secondary">Loading your dashboard…</p>;
 
-  const filteredApplications = filterStatus === 'all'
-    ? applications
-    : applications.filter((app) => app.status === filterStatus);
+  const pending = applications.filter((item) => (item.status || "Pending") === "Pending").length;
+  const accepted = applications.filter((item) => item.status === "Accepted").length;
+  const rejected = applications.filter((item) => item.status === "Rejected").length;
+  const stats = [["Applications", applications.length], ["Pending", pending], ["Accepted", accepted], ["Rejected", rejected]];
+  const firstName = (user?.name || "Student").split(" ")[0];
 
   return (
-    <div className="space-y-8">
-      {/* ── Mock Data Banner Notification ── */}
-      <div className="p-3 bg-primary-50/70 border border-primary-200/80 rounded-xl text-xs text-primary-900 flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <Badge variant="primary" size="sm">Mock Data</Badge>
-          <span>
-            This dashboard combines sample records with applications saved in this browser. A backend is not connected yet.
-          </span>
-        </div>
-        <Link
-          to={ROUTES.STUDENT_INTERNSHIPS}
-          className="text-primary-700 hover:text-primary-800 font-semibold underline underline-offset-2 shrink-0 hidden sm:inline"
-        >
-          Browse Internships →
-        </Link>
-      </div>
-
-      {/* ── 1. Personalized Welcome Section ── */}
-      <div className="bg-surface border border-border rounded-2xl p-6 sm:p-8 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div className="space-y-2">
-          <div className="flex items-center gap-2.5">
-            <h2 className="text-2xl sm:text-3xl font-bold text-text-primary tracking-tight">
-              Welcome back, {dashboardName.split(' ')[0]}! 👋
-            </h2>
-          </div>
-          <p className="text-sm text-text-secondary max-w-2xl leading-relaxed">
-            You have <strong className="text-text-primary">{pendingCount} applications</strong> in progress and <strong className="text-primary-700 font-semibold">{acceptedCount} accepted offers</strong>.
-          </p>
-          <div className="flex flex-wrap items-center gap-2 pt-1 text-xs text-text-muted">
-            <span className="font-medium text-text-secondary">{profile.university}</span>
-            <span>•</span>
-            <span>{profile.degree}</span>
-            <span>•</span>
-            <span>Class of {profile.graduationYear}</span>
-          </div>
-        </div>
-
-        {/* Quick Actions CTA */}
-        <div className="flex items-center gap-3 shrink-0">
-          <Link to={ROUTES.STUDENT_SEARCH}>
-            <Button variant="primary" size="md" className="shadow-xs">
-              <SparklesIcon />
-              <span>Browse Internships</span>
-            </Button>
-          </Link>
-          <Link to={ROUTES.STUDENT_APPLICATIONS}>
-            <Button variant="outline" size="md">
-              View All Applications
-            </Button>
-          </Link>
-        </div>
-      </div>
-
-      {/* ── 2. Statistics Cards Grid (4 KPIs) ── */}
-      <section aria-labelledby="student-kpi-heading">
-        <h3 id="student-kpi-heading" className="text-xs font-semibold uppercase tracking-wider text-text-muted mb-4">
-          Application Overview
-        </h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {dashboardStats.map((stat) => (
-            <Card key={stat.id} variant="bordered" padding="md" className="hover:shadow-xs transition-shadow">
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-xs font-medium text-text-secondary">{stat.label}</span>
-                <span className="w-8 h-8 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center">
-                  {getStatIcon(stat.icon)}
-                </span>
-              </div>
-              <div className="flex items-baseline gap-2">
-                <p className="text-3xl font-bold text-text-primary tracking-tight">{stat.value}</p>
-                <span
-                  className={[
-                    'text-xs font-medium',
-                    stat.changeType === 'positive' ? 'text-success-600' : 'text-text-muted',
-                  ].join(' ')}
-                >
-                  {stat.change}
-                </span>
-              </div>
-            </Card>
-          ))}
-        </div>
+    <div className="space-y-6">
+      <section className="flex flex-col justify-between gap-4 rounded-2xl border border-border bg-surface p-6 sm:flex-row sm:items-center sm:p-8">
+        <div><p className="text-xs font-semibold uppercase tracking-wide text-primary-600">Student workspace</p><h1 className="mt-2 text-2xl font-bold text-text-primary">Welcome, {firstName}</h1><p className="mt-1 text-sm text-text-secondary">{profile?.university || "Complete your academic profile to get started."}</p>{profile?.major && <p className="mt-1 text-xs text-text-muted">{profile.major} · Graduation {profile.graduationYear}</p>}</div>
+        <div className="flex flex-wrap gap-2"><Link to={ROUTES.STUDENT_INTERNSHIPS}><Button>Explore internships</Button></Link><Link to={ROUTES.STUDENT_PROFILE}><Button variant="outline">My profile</Button></Link></div>
       </section>
 
-      {/* ── 3. Recent Applications Table/List ── */}
-      <section aria-labelledby="recent-applications-heading" className="space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div>
-            <h3 id="recent-applications-heading" className="text-base sm:text-lg font-bold text-text-primary">
-              Recent Applications
-            </h3>
-            <p className="text-xs text-text-muted">
-              Track real-time status changes and interview stages
-            </p>
-          </div>
+      {profileMissing && <div className="rounded-xl border border-warning-200 bg-warning-50 p-4"><h2 className="font-semibold text-warning-900">Complete your student profile</h2><p className="mt-1 text-sm text-warning-800">You need an academic profile before you can apply for internships.</p><Link className="mt-3 inline-block text-sm font-semibold text-primary-700 underline" to={ROUTES.STUDENT_PROFILE}>Create profile</Link></div>}
+      {error && <p role="alert" className="rounded-lg bg-danger-50 p-3 text-sm text-danger-700">{error}</p>}
 
-          {/* Status Filter Tabs */}
-          <div className="flex items-center gap-1.5 p-1 bg-secondary-100 rounded-lg text-xs font-medium self-start sm:self-auto">
-            {['all', 'submitted', 'under_review', 'interviewing', 'accepted', 'rejected'].map((status) => (
-              <button
-                key={status}
-                type="button"
-                onClick={() => setFilterStatus(status)}
-                className={[
-                  'px-2.5 py-1 rounded-md transition-colors capitalize select-none',
-                  filterStatus === status
-                    ? 'bg-white text-text-primary font-semibold shadow-2xs'
-                    : 'text-text-muted hover:text-text-primary',
-                ].join(' ')}
-              >
-                {status.replace('_', ' ')}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Applications List / Table Container */}
-        <div className="bg-surface border border-border rounded-xl shadow-xs overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="border-b border-border bg-secondary-50/70 text-[11px] font-semibold text-text-muted uppercase tracking-wider">
-                  <th scope="col" className="py-3 px-4 sm:px-6">Role & Company</th>
-                  <th scope="col" className="py-3 px-4 hidden md:table-cell">Location & Compensation</th>
-                  <th scope="col" className="py-3 px-4">Applied Date</th>
-                  <th scope="col" className="py-3 px-4">Status</th>
-                  <th scope="col" className="py-3 px-4 text-right">Action</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border text-sm">
-                {filteredApplications.map((app) => (
-                  <tr key={app.id} className="hover:bg-secondary-50/50 transition-colors">
-                    <td className="py-3.5 px-4 sm:px-6">
-                      <div className="flex items-center gap-3">
-                        <Avatar name={app.companyName} size="sm" />
-                        <div>
-                          <p className="font-semibold text-text-primary text-xs sm:text-sm">
-                            {app.internshipTitle}
-                          </p>
-                          <p className="text-xs text-text-muted font-medium">
-                            {app.companyName}
-                          </p>
-                        </div>
-                      </div>
-                    </td>
-
-                    <td className="py-3.5 px-4 hidden md:table-cell">
-                      <p className="text-xs text-text-secondary">{app.location}</p>
-                      <p className="text-[11px] text-text-muted">{app.stipend}</p>
-                    </td>
-
-                    <td className="py-3.5 px-4 text-xs text-text-secondary">
-                      {app.appliedDate}
-                    </td>
-
-                    <td className="py-3.5 px-4">
-                      <Badge variant={app.badgeVariant} dot size="sm">
-                        {app.statusLabel}
-                      </Badge>
-                    </td>
-
-                    <td className="py-3.5 px-4 text-right">
-                      <Link to={ROUTES.STUDENT_APPLICATIONS} className="text-xs font-semibold text-primary-600 hover:text-primary-700">
-                        Details
-                      </Link>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          <div className="p-3 border-t border-border bg-secondary-50/40 text-center">
-            <Link
-              to={ROUTES.STUDENT_APPLICATIONS}
-              className="text-xs font-semibold text-primary-600 hover:text-primary-700 inline-flex items-center gap-1.5"
-            >
-              <span>View all {applications.length} applications</span>
-              <ArrowRightIcon />
-            </Link>
-          </div>
-        </div>
+      <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        {stats.map(([label, value]) => <Card key={label} padding="md"><p className="text-xs text-text-muted">{label}</p><p className="mt-2 text-3xl font-bold text-text-primary">{value}</p></Card>)}
       </section>
 
-      {/* ── 4. Recommended Internships Section ── */}
-      <section aria-labelledby="recommended-internships-heading" className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 id="recommended-internships-heading" className="text-base sm:text-lg font-bold text-text-primary">
-              Recommended for You
-            </h3>
-            <p className="text-xs text-text-muted">
-              Matches based on your profile, skills, and major
-            </p>
-          </div>
-          <Link
-            to={ROUTES.STUDENT_SEARCH}
-            className="text-xs font-semibold text-primary-600 hover:text-primary-700 inline-flex items-center gap-1"
-          >
-            <span>Explore all (140+)</span>
-            <ArrowRightIcon />
-          </Link>
-        </div>
+      <section className="grid grid-cols-1 gap-5 xl:grid-cols-2">
+        <Card padding="md" className="space-y-4">
+          <div className="flex items-center justify-between"><div><h2 className="font-bold text-text-primary">Recent applications</h2><p className="text-xs text-text-muted">Latest updates from employers</p></div><Link className="text-xs font-semibold text-primary-600" to={ROUTES.STUDENT_APPLICATIONS}>View all</Link></div>
+          {applications.slice(0, 5).map((application) => {
+            const internship = application.internship || {};
+            const company = internship.company || {};
+            const meta = STATUS[application.status] || STATUS.Pending;
+            return <div key={application._id} className="flex items-center justify-between gap-3 border-t border-border pt-3"><div className="flex min-w-0 items-center gap-3"><Avatar name={company.companyName || company.user?.name || "Company"} size="sm" /><div className="min-w-0"><p className="truncate text-sm font-semibold text-text-primary">{internship.title || "Internship"}</p><p className="truncate text-xs text-text-muted">{company.companyName || company.user?.name || "Company"}</p></div></div><Badge variant={meta.variant}>{meta.label}</Badge></div>;
+          })}
+          {!applications.length && <p className="py-6 text-center text-sm text-text-muted">You haven't applied to any internship yet.</p>}
+        </Card>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-          {MOCK_RECOMMENDED_INTERNSHIPS.map((item) => (
-            <Card key={item.id} variant="bordered" padding="md" hoverable className="flex flex-col justify-between">
-              <div>
-                <div className="flex items-start justify-between gap-2 mb-3">
-                  <div className="flex items-center gap-2.5">
-                    <Avatar name={item.company} size="sm" />
-                    <div>
-                      <h4 className="text-xs font-bold text-text-primary">{item.company}</h4>
-                      <p className="text-[11px] text-text-muted">{item.location}</p>
-                    </div>
-                  </div>
-                  <Badge variant="success" size="sm">
-                    {item.matchScore}% Match
-                  </Badge>
-                </div>
-
-                <h5 className="font-semibold text-sm text-text-primary mb-2 line-clamp-1">
-                  {item.title}
-                </h5>
-
-                <div className="space-y-1.5 text-xs text-text-secondary mb-4">
-                  <p className="text-text-muted text-[11px]">{item.type} • {item.duration}</p>
-                  <p className="font-semibold text-primary-700">{item.stipend}</p>
-                </div>
-
-                <div className="flex flex-wrap gap-1.5 mb-4">
-                  {item.tags.map((tag) => (
-                    <span
-                      key={tag}
-                      className="px-2 py-0.5 rounded-md bg-secondary-100 text-secondary-700 text-[11px] font-medium"
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              <div className="pt-3 border-t border-border flex items-center justify-between text-xs">
-                <span className="text-[11px] text-warning-600 font-medium">{item.deadline}</span>
-                <Link to={ROUTES.STUDENT_INTERNSHIPS}>
-                  <Button variant="primary" size="sm">
-                    View & Apply
-                  </Button>
-                </Link>
-              </div>
-            </Card>
-          ))}
-        </div>
+        <Card padding="md" className="space-y-4">
+          <div className="flex items-center justify-between"><div><h2 className="font-bold text-text-primary">Latest opportunities</h2><p className="text-xs text-text-muted">Verified and active internships</p></div><Link className="text-xs font-semibold text-primary-600" to={ROUTES.STUDENT_INTERNSHIPS}>Browse all</Link></div>
+          {recommended.map((item) => {
+            const companyName = item.company?.companyName || item.company?.user?.name || "Company";
+            return <div key={item._id} className="flex items-center justify-between gap-3 border-t border-border pt-3"><div className="flex min-w-0 items-center gap-3"><Avatar name={companyName} size="sm" /><div className="min-w-0"><p className="truncate text-sm font-semibold text-text-primary">{item.title}</p><p className="truncate text-xs text-text-muted">{companyName} · {item.location || "Location not specified"}</p></div></div><Link className="shrink-0 text-xs font-semibold text-primary-600" to={ROUTES.STUDENT_INTERNSHIP_DETAILS.replace(":id", item._id)}>Details</Link></div>;
+          })}
+          {!recommended.length && <p className="py-6 text-center text-sm text-text-muted">No opportunities available right now.</p>}
+        </Card>
       </section>
     </div>
   );
