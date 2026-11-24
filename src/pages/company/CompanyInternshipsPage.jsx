@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useFeedback } from "../../context/FeedbackContext.jsx";
 import { Badge, Button, Card } from "../../components/ui/index.js";
 import { createCompanyInternship, deleteCompanyInternship, getCompanyInternships, updateCompanyInternship } from "../../services/companyService.js";
 
@@ -10,6 +11,7 @@ const statusMeta = (item) => item.moderationStatus === "approved" && item.isActi
     : { label: "Pending review", variant: "warning" };
 
 export function CompanyInternshipsPage() {
+  const { notify, confirm } = useFeedback();
   const [company, setCompany] = useState(null);
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -72,15 +74,15 @@ export function CompanyInternshipsPage() {
       await load();
       setNotice(editing ? "Internship updated and sent for administrator review." : "Internship created and sent for administrator review.");
       closeForm();
-    } catch (err) { setError(err.message || "Unable to save internship."); }
+    } catch (err) { setError(err.message || "Unable to save internship."); notify(err.message || "Unable to save internship.", "error"); }
     finally { setSaving(false); }
   };
 
   const handleDelete = async (item) => {
-    if (!window.confirm(`Delete "${item.title}"? This is only possible when no applications have been received.`)) return;
+    if (!(await confirm(`Delete "${item.title}"? This is only possible when no applications have been received.`, { title: "Delete internship?", confirmText: "Delete posting", danger: true }))) return;
     setError(""); setNotice("");
-    try { await deleteCompanyInternship(item._id); await load(); setNotice("Internship deleted."); }
-    catch (err) { setError(err.message || "Unable to delete internship."); }
+    try { await deleteCompanyInternship(item._id); await load(); notify("Internship deleted successfully.", "success"); }
+    catch (err) { setError(err.message || "Unable to delete internship."); notify(err.message || "Unable to delete internship.", "error"); }
   };
 
   if (loading) return <p className="p-8 text-sm text-text-secondary">Loading internships…</p>;
@@ -93,7 +95,7 @@ export function CompanyInternshipsPage() {
       </div>
       {!approved && <div className="rounded-xl border border-warning-200 bg-warning-50 p-4 text-sm text-warning-800">Your company must be approved before creating or editing internships. Current status: <strong>{company?.verificationStatus || "profile missing"}</strong>.</div>}
       {error && <p role="alert" className="rounded-lg bg-danger-50 p-3 text-sm text-danger-700">{error}</p>}
-      {notice && <p role="status" className="rounded-lg bg-success-50 p-3 text-sm text-success-700">{notice}</p>}
+      
 
       {formOpen ? (
         <Card padding="lg" className="space-y-4">
