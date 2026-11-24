@@ -9,7 +9,8 @@ const statusStyle = {
   Rejected: { label: "Rejected", variant: "danger" },
 };
 
-export function CompanyApplicantsPage() {\n  const { notify } = useFeedback();
+export function CompanyApplicantsPage() {
+  const { notify } = useFeedback();
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -55,9 +56,11 @@ export function CompanyApplicantsPage() {\n  const { notify } = useFeedback();
     try {
       const result = await updateCompanyApplicationStatus(id, status);
       const updated = result?._id ? result : result?.data;
-      setApplications((current) => current.map((item) => item._id === id ? { ...item, status: updated?.status || status } : item));\n      notify(`Application marked as ${updated?.status || status}.`, "success");
+      setApplications((current) => current.map((item) => item._id === id ? { ...item, status: updated?.status || status } : item));
+      notify(`Application marked as ${updated?.status || status}.`, "success");
     } catch (err) {
-      setError(err.message || "Unable to update application status.");\n      notify(err.message || "Unable to update application status.", "error");
+      setError(err.message || "Unable to update application status.");
+      notify(err.message || "Unable to update application status.", "error");
     } finally { setUpdatingId(""); }
   };
 
