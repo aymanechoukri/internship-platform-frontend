@@ -18,6 +18,7 @@ export function CompanyInternshipsPage() {
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("all");
   const [editing, setEditing] = useState(null);
+  const [formOpen, setFormOpen] = useState(false);
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
 
@@ -44,9 +45,10 @@ export function CompanyInternshipsPage() {
     return matchesQuery && matchesFilter;
   }), [items, query, filter]);
 
-  const openCreate = () => { setEditing(null); setForm(EMPTY_FORM); setError(""); setNotice(""); };
+  const openCreate = () => { setEditing(null); setForm(EMPTY_FORM); setFormOpen(true); setError(""); setNotice(""); };
   const openEdit = (item) => {
     setEditing(item);
+    setFormOpen(true);
     setForm({
       title: item.title || "", description: item.description || "", location: item.location || "",
       type: item.type || "Onsite", duration: item.duration || "", salary: String(item.salary ?? 0),
@@ -54,7 +56,7 @@ export function CompanyInternshipsPage() {
     });
     setError(""); setNotice("");
   };
-  const closeForm = () => { setEditing(null); setForm(EMPTY_FORM); };
+  const closeForm = () => { setEditing(null); setForm(EMPTY_FORM); setFormOpen(false); };
 
   const handleSave = async (event) => {
     event.preventDefault();
@@ -93,7 +95,7 @@ export function CompanyInternshipsPage() {
       {error && <p role="alert" className="rounded-lg bg-danger-50 p-3 text-sm text-danger-700">{error}</p>}
       {notice && <p role="status" className="rounded-lg bg-success-50 p-3 text-sm text-success-700">{notice}</p>}
 
-      {editing !== null || form.title !== "" ? (
+      {formOpen ? (
         <Card padding="lg" className="space-y-4">
           <div className="flex items-center justify-between"><h2 className="font-bold text-text-primary">{editing ? "Edit internship" : "New internship"}</h2><button type="button" onClick={closeForm} className="text-sm text-text-muted">Close</button></div>
           <form onSubmit={handleSave} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
