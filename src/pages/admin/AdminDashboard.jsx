@@ -127,7 +127,10 @@ export function AdminDashboardPage() {
     }
   }, [tab, loadOverview, loadCollection]);
 
-  useEffect(() => { refresh(); }, [refresh]);
+  useEffect(() => {
+    const timer = window.setTimeout(() => { void refresh(); }, 0);
+    return () => window.clearTimeout(timer);
+  }, [refresh]);
 
   const selectTab = (nextTab) => {
     setTab(nextTab);
