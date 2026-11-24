@@ -6,6 +6,7 @@
  */
 
 import { useMemo, useState } from 'react';
+import useLocalStorage from '../../hooks/useLocalStorage.js';
 import { Link } from 'react-router-dom';
 import { Avatar, Badge, Button, Card } from '../../components/ui/index.js';
 import {
@@ -88,7 +89,7 @@ export function StudentInternshipsPage() {
   const [selectedLocation, setSelectedLocation] = useState('All');
   const [selectedType, setSelectedType] = useState('All');
   const [sortBy, setSortBy] = useState('newest'); // 'newest' | 'compensation'
-  const [savedInternshipIds, setSavedInternshipIds] = useState(() => new Set(['int-01']));
+  const [savedInternshipIds, setSavedInternshipIds] = useLocalStorage('saved-internships', ['int-01']);
   const [saveToast, setSaveToast] = useState('');
 
   // Count active filters
@@ -109,21 +110,14 @@ export function StudentInternshipsPage() {
   };
 
   const handleToggleSave = (id, title) => {
-    setSavedInternshipIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) {
-        next.delete(id);
-        setSaveToast(`Removed "${title}" from saved internships.`);
-      } else {
-        next.add(id);
-        setSaveToast(`Saved "${title}" to your bookmarks!`);
-      }
-      return next;
-    });
-
-    setTimeout(() => {
-      setSaveToast('');
-    }, 2500);
+    const isCurrentlySaved = savedInternshipIds.includes(id);
+    setSavedInternshipIds((previous) => (
+      isCurrentlySaved ? previous.filter((savedId) => savedId !== id) : [...previous, id]
+    ));
+    setSaveToast(isCurrentlySaved
+      ? `Removed "${title}" from saved internships.`
+      : `Saved "${title}" to your bookmarks!`);
+    setTimeout(() => setSaveToast(''), 2500);
   };
 
   // Filtered and sorted listings
@@ -370,7 +364,7 @@ export function StudentInternshipsPage() {
       {filteredInternships.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {filteredInternships.map((internship) => {
-            const isSaved = savedInternshipIds.has(internship.id);
+            const isSaved = savedInternshipIds.includes(internship.id);
 
             return (
               <Card
