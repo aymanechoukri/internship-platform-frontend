@@ -1,132 +1,203 @@
 # Internship Platform
 
-A responsive internship management platform built with React, React Router, Vite, and Tailwind CSS v4. The project currently provides a frontend prototype for students and employers, with mock data used for dashboard and workflow demonstrations.
+A full-stack internship management platform that connects students with companies. Students can discover opportunities and manage applications, companies can publish internships and review applicants, and administrators can oversee platform activity.
+
+## Live Demo
+
+- **Frontend:** https://internship-platform-frontend-five.vercel.app
+- **Backend API:** https://internship-platform-backend.vercel.app
+
+## Repositories
+
+- **Frontend:** https://github.com/aymanechoukri/internship-platform-frontend
+- **Backend:** https://github.com/aymanechoukri/internship-platform-backend
 
 ## Features
 
 ### Student portal
-- Student dashboard with application overview and recommendations
-- Internship discovery with keyword search, category, location, work-mode, and type filters
-- Sorting by newest and compensation
-- Internship detail pages
-- Saved internships persisted in browser storage
-- Internship application demo flow
-- Dedicated applications history with status filters
-- Editable student profile (browser-local persistence)
+- Register and sign in with a student account
+- Browse and search internship opportunities
+- Filter opportunities and view internship details
+- Submit applications and track application statuses
+- View and update a student profile
+- Upload, manage, and download a CV
+- Receive platform notifications
 
-### Employer portal
-- Company dashboard with recruitment metrics and sample applicant activity
-- Internship listing management
-- Create, edit, filter, and delete internship posts (browser-local persistence)
-- Applicant search and status updates
-- Editable company profile (browser-local persistence)
-- Form validation and delete confirmation
+### Company portal
+- Register and manage a company profile
+- Create, update, and manage internship listings
+- View applicants for company opportunities
+- Review applications and update their statuses
+- Access applicant CVs where authorized
+- Receive platform notifications
 
-### Authentication UI
-- Login, registration, and password-reset screens
-- Student and company account type selection
-- Client-side validation and password visibility controls
+### Admin dashboard
+- View platform statistics and recent activity
+- Manage user accounts
+- Review and verify company accounts
+- Moderate internship listings
+- Monitor applications
+- Send notifications to platform users
+- Review administrative activity logs
 
-### UI foundation
-- Shared Button, Input, Card, Badge, Avatar, and Spinner components
-- Tailwind CSS v4 design tokens
-- Responsive dashboard and authentication layouts
+### Shared experience
+- Role-based navigation for Student, Company, and Admin accounts
+- Protected frontend routes and API authorization
+- Responsive layouts for desktop and mobile
+- Form validation, loading states, error feedback, and confirmation dialogs
 
-## Tech stack
+## Tech Stack
 
-- React 19
-- React Router 7
-- Vite 8
-- Tailwind CSS 4
-- ESLint
+| Frontend | Backend | Database & tooling |
+| --- | --- | --- |
+| React 19 | Node.js | MongoDB |
+| React Router 7 | Express 5 | Mongoose |
+| Vite 8 | JWT authentication | GitHub Actions |
+| Tailwind CSS 4 | bcrypt password hashing | Vercel |
+| JavaScript (ES modules) | Multer for CV uploads | ESLint |
 
-## Getting started
+## Architecture
 
-Requirements: Node.js 20.19+ or 22.12+ (compatible with Vite 8), plus npm.
+The application is split into two repositories:
+
+- The **React frontend** communicates with the backend through a shared API client.
+- The **Express REST API** handles authentication, authorization, business logic, file operations, and database access.
+- **MongoDB** stores users, student and company profiles, internships, applications, CV metadata, notifications, and admin activity records.
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js 20.19+ or 22.12+
+- npm
+- MongoDB instance or MongoDB Atlas connection string
+
+### 1. Clone the repositories
 
 ```bash
 git clone https://github.com/aymanechoukri/internship-platform-frontend.git
+git clone https://github.com/aymanechoukri/internship-platform-backend.git
+```
+
+### 2. Configure and start the backend
+
+```bash
+cd internship-platform-backend
+npm install
+```
+
+Create a `.env` file in the backend root:
+
+```env
+PORT=5000
+MONGO_URI=your_mongodb_connection_string
+JWT_SECRET=your_long_random_secret
+```
+
+Use a strong, private JWT secret. Never commit the real `.env` file or expose database credentials.
+
+Start the API:
+
+```bash
+npm run dev
+```
+
+The API runs locally on `http://localhost:5000` by default.
+
+### 3. Configure and start the frontend
+
+In a second terminal:
+
+```bash
 cd internship-platform-frontend
 npm install
+```
+
+Create a `.env` file in the frontend root:
+
+```env
+VITE_API_URL=http://localhost:5000/api
+```
+
+Start the development server:
+
+```bash
 npm run dev
 ```
 
 Open the local URL printed by Vite.
 
-## Available scripts
+> Vite environment variables prefixed with `VITE_` are exposed to the browser. Do not store private keys, database credentials, or server secrets in them.
+
+## Available Frontend Scripts
 
 | Command | Description |
 | --- | --- |
-| `npm run dev` | Start the development server |
-| `npm run build` | Create a production build in `dist/` |
+| `npm run dev` | Start the Vite development server |
+| `npm run build` | Create the production build |
 | `npm run preview` | Preview the production build locally |
 | `npm run lint` | Run ESLint |
 
-## Project structure
+## Backend Scripts
+
+| Command | Description |
+| --- | --- |
+| `npm run dev` | Start the API with Nodemon |
+| `npm start` | Start the API |
+| `npm test` | Run the Node.js test suite |
+
+## Main API Areas
+
+The REST API is organized around these resources:
+
+- `/api/auth` — registration and authentication
+- `/api/students` — student profiles
+- `/api/companies` — company profiles and dashboard data
+- `/api/internship` — internship discovery and listing management
+- `/api/applications` — student applications and company reviews
+- `/api/cvs` — CV upload and authorized downloads
+- `/api/notifications` — user notifications
+- `/api/admin` — administration and moderation
+
+## Project Structure
+
+### Frontend
 
 ```text
 src/
-├── components/
-│   ├── company/       # Employer modals and forms
-│   ├── layout/        # Shared layout exports
-│   └── ui/            # Reusable UI components
-├── constants/         # Routes, roles, and prototype data
-├── context/           # Shared authentication state
-├── hooks/             # Reusable React hooks
-├── layouts/           # Authentication and dashboard layouts
-├── pages/
-│   ├── auth/          # Login, registration, password reset
-│   ├── company/       # Employer portal
-│   └── student/       # Student portal
-├── routes/            # Central route configuration
-├── services/          # API client and service layer
-├── styles/            # Fonts and global styles
-└── utils/             # Validators and formatters
+├── components/   # Shared UI, layout, and feature components
+├── constants/    # Routes, roles, and application constants
+├── context/      # Authentication and feedback state
+├── hooks/        # Reusable React hooks
+├── layouts/      # Authentication and dashboard layouts
+├── pages/        # Student, company, admin, and auth pages
+├── routes/       # Role-protected route configuration
+├── services/     # API client and resource services
+├── styles/       # Global styles and design tokens
+└── utils/        # Validation and formatting helpers
 ```
 
-## Current implementation status
+### Backend
 
-This repository is currently a **frontend prototype**, not a production-connected full-stack application.
-
-- Login, registration, and password-reset forms call the API service layer. The frontend expects the backend endpoints documented below; the backend itself is not included in this repository.
-- Authenticated student and company routes are protected by client-side role guards. API authorization must still be enforced by the backend.
-- Dashboard metrics and initial profiles/applicants/internships are sample data.
-- Internship create/edit/delete operations, saved jobs, applications, profile edits, and applicant status changes are persisted only in the current browser using localStorage.
-- The application flow is a local prototype: it does not upload a resume, send email, or notify an employer.
-- The admin route provides an explicit placeholder only. User, company, and platform administration screens are not implemented.
-- A GitHub Actions workflow runs ESLint and the Vite production build on pushes and pull requests.
-
-## Backend integration
-
-The API client reads its base URL from `VITE_API_URL` and falls back to `http://localhost:8080/api`.
-
-The current authentication service expects these JSON endpoints:
-
-| Method | Endpoint | Expected response |
-| --- | --- | --- |
-| POST | `/auth/login` | `{ "token": "...", "user": { "role": "student" or "company" } }` |
-| POST | `/auth/register` | Account creation result |
-| POST | `/auth/forgot-password` | Password-reset request result |
-| POST | `/auth/logout` | Logout result (optional for local session clearing) |
-
-The login parser also accepts `accessToken`, `access_token`, or a nested `data.token` and `data.user` response. Adjust the service layer to match your actual backend contract before deployment. Route guards in React improve navigation UX but do not replace backend authorization.
-
-Create a local `.env` file when a backend is available:
-
-```env
-VITE_API_URL=http://localhost:8080/api
+```text
+src/
+├── config/       # Database configuration
+├── middleware/   # Error handling and request middleware
+├── models/       # Mongoose data models
+├── modules/      # Auth, student, company, internship, CV, admin, and notification modules
+├── utils/        # Shared utilities
+├── app.js        # Express application and API routes
+└── server.js     # Server startup
 ```
 
-Do not put private API keys or server secrets in Vite environment variables prefixed with `VITE_`; those values are exposed to the browser.
+## Security Notes
 
-## Roadmap
+- Passwords are hashed with bcrypt before storage.
+- Authenticated API requests use signed JWTs.
+- Backend authorization must be enforced for every protected operation; frontend route guards are for navigation and user experience only.
+- CV access is handled through backend endpoints.
+- Keep environment files and production credentials private.
 
-- Confirm the real backend request/response contract and test authentication end to end.
-- Replace browser-local demo persistence with database-backed internship, bookmark, application, profile, and applicant endpoints.
-- Add resume upload, employer notifications, and application status history.
-- Implement real admin user/company moderation and platform management.
-- Add automated unit and integration tests for validation, routing, and core user flows.
+## Project Status
 
-## Project status
-
-Work in progress. Demo data and simulated interactions are labelled in the interface where applicable.
+The application is deployed and under active development. Some edge cases and workflows may still need further testing. Contributions and feedback are welcome.
