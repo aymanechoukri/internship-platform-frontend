@@ -243,6 +243,7 @@ export function InternshipDetailsPage() {
               onClick={() => {
                 setApplyModalOpen(true);
                 setApplicationSubmitted(false);
+                setApplicationNotice('');
               }}
               className="shadow-xs"
             >
@@ -407,6 +408,7 @@ export function InternshipDetailsPage() {
                 onClick={() => {
                   setApplyModalOpen(true);
                   setApplicationSubmitted(false);
+                  setApplicationNotice('');
                 }}
               >
                 Apply for this Role
