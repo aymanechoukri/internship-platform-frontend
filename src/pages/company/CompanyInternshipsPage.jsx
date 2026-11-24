@@ -10,6 +10,7 @@ import DeleteConfirmModal from '../../components/company/DeleteConfirmModal.jsx'
 import InternshipFormModal from '../../components/company/InternshipFormModal.jsx';
 import { Badge, Button, Card } from '../../components/ui/index.js';
 import { INITIAL_COMPANY_INTERNSHIPS } from '../../constants/mockCompanyInternships.js';
+import useLocalStorage from '../../hooks/useLocalStorage.js';
 
 /* ── Inline SVG Icons ── */
 function PlusIcon() {
@@ -46,7 +47,7 @@ function TrashIcon() {
 }
 
 export function CompanyInternshipsPage() {
-  const [internships, setInternships] = useState(INITIAL_COMPANY_INTERNSHIPS);
+  const [internships, setInternships] = useLocalStorage('company-internships', INITIAL_COMPANY_INTERNSHIPS);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('All'); // 'All' | 'active' | 'draft' | 'closed'
 
