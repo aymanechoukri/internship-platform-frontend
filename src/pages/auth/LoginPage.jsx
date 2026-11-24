@@ -101,7 +101,7 @@ export function LoginPage() {
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submittedMessage, setSubmittedMessage] = useState('');
+  const [submittedMessage, setSubmittedMessage] = useState(location.state?.message ?? '');
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -151,7 +151,7 @@ export function LoginPage() {
       const rawUser = response?.user ?? response?.data?.user;
       if (!token || !rawUser) throw new Error('The API response must include a user and an authentication token.');
       const user = { ...rawUser, role: String(rawUser.role ?? rawUser.accountType ?? '').toLowerCase() };
-      if (!['student', 'company', 'admin'].includes(user.role)) throw new Error('Your account has an unsupported role.');
+      if (!['student', 'company'].includes(user.role)) throw new Error('This account role is not available in the current portal.');
       login(user, token, formData.rememberMe);
       const destination = user.role === 'company' ? ROUTES.COMPANY_DASHBOARD : user.role === 'admin' ? ROUTES.ADMIN_DASHBOARD : ROUTES.STUDENT_DASHBOARD;
       navigate(location.state?.from?.pathname ?? destination, { replace: true });
