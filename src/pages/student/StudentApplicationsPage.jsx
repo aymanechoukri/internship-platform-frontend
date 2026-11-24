@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Badge, Button, Card } from "../../components/ui/index.js";
 import { ROUTES } from "../../constants/routes.js";
 import { getMyApplications, withdrawMyApplication } from "../../services/applicationService.js";
+import { useFeedback } from "../../context/FeedbackContext.jsx";
 
 const STATUS_META = {
   Pending: { label: "Pending", variant: "warning" },
@@ -11,6 +12,7 @@ const STATUS_META = {
 };
 
 export function StudentApplicationsPage() {
+  const { notify, confirm } = useFeedback();
   const [applications, setApplications] = useState([]);
   const [filter, setFilter] = useState("all");
   const [loading, setLoading] = useState(true);
@@ -35,12 +37,13 @@ export function StudentApplicationsPage() {
   const filtered = applications.filter((item) => filter === "all" || item.status === filter);
 
   const withdraw = async (application) => {
-    if (!window.confirm("Withdraw this pending application?")) return;
+    if (!(await confirm("Withdraw this pending application?", { title: "Withdraw application?", confirmText: "Withdraw", danger: true }))) return;
     setWithdrawingId(application._id); setError("");
     try {
       await withdrawMyApplication(application._id);
       setApplications((current) => current.filter((item) => item._id !== application._id));
-    } catch (err) { setError(err.message || "Unable to withdraw this application."); }
+      notify("Application withdrawn successfully.", "success");
+    } catch (err) { setError(err.message || "Unable to withdraw this application."); notify(err.message || "Unable to withdraw this application.", "error"); }
     finally { setWithdrawingId(""); }
   };
 
