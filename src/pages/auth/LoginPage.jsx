@@ -6,10 +6,12 @@
  */
 
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button, Card, Input } from '../../components/ui/index.js';
 import { ROUTES } from '../../constants/routes.js';
 import { isValidEmail } from '../../utils/validators.js';
+import { login as signIn } from '../../services/authService.js';
+import useAuth from '../../hooks/useAuth.js';
 
 /* ── Inline SVG Icons ── */
 function EyeIcon() {
@@ -87,6 +89,9 @@ function LockIcon() {
 }
 
 export function LoginPage() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { login, setIsLoading } = useAuth();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -129,10 +134,9 @@ export function LoginPage() {
     return nextErrors;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmittedMessage('');
-
     const validationErrors = validate();
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
@@ -140,14 +144,23 @@ export function LoginPage() {
     }
 
     setIsSubmitting(true);
-
-    // Frontend-only presentation simulation (no backend connection)
-    setTimeout(() => {
+    setIsLoading(true);
+    try {
+      const response = await signIn({ email: formData.email.trim(), password: formData.password });
+      const token = response?.token ?? response?.accessToken ?? response?.access_token ?? response?.data?.token;
+      const rawUser = response?.user ?? response?.data?.user;
+      if (!token || !rawUser) throw new Error('The API response must include a user and an authentication token.');
+      const user = { ...rawUser, role: String(rawUser.role ?? rawUser.accountType ?? '').toLowerCase() };
+      if (!['student', 'company', 'admin'].includes(user.role)) throw new Error('Your account has an unsupported role.');
+      login(user, token, formData.rememberMe);
+      const destination = user.role === 'company' ? ROUTES.COMPANY_DASHBOARD : user.role === 'admin' ? ROUTES.ADMIN_DASHBOARD : ROUTES.STUDENT_DASHBOARD;
+      navigate(location.state?.from?.pathname ?? destination, { replace: true });
+    } catch (error) {
+      setSubmittedMessage(error.message || 'Unable to sign in. Please try again.');
+    } finally {
       setIsSubmitting(false);
-      setSubmittedMessage(
-        `Form validated successfully for ${formData.email}. (Frontend-only mode — backend not connected yet)`
-      );
-    }, 600);
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -164,13 +177,13 @@ export function LoginPage() {
       {submittedMessage && (
         <div
           role="status"
-          className="mb-5 p-3.5 rounded-lg bg-primary-50 border border-primary-200 text-xs text-primary-800 flex items-start gap-2"
+          className="mb-5 p-3.5 rounded-lg bg-danger-50 border border-danger-200 text-xs text-danger-700 flex items-start gap-2"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 20 20"
             fill="currentColor"
-            className="w-4 h-4 text-primary-600 shrink-0 mt-0.5"
+            className="w-4 h-4 text-danger-600 shrink-0 mt-0.5"
             aria-hidden="true"
           >
             <path
