@@ -1,59 +1,103 @@
-import { useState } from 'react';
-import { Avatar, Button, Card, Input } from '../../components/ui/index.js';
-import { MOCK_COMPANY_PROFILE } from '../../constants/mockCompanyDashboard.js';
-import useAuth from '../../hooks/useAuth.js';
-import useLocalStorage from '../../hooks/useLocalStorage.js';
+import { useEffect, useState } from "react";
+import { Badge, Button, Card } from "../../components/ui/index.js";
+import useAuth from "../../hooks/useAuth.js";
+import { createCompanyProfile, getCompanyProfile, updateCompanyProfile } from "../../services/companyService.js";
+
+const EMPTY_PROFILE = { companyName: "", website: "", location: "", industry: "", description: "" };
 
 export function CompanyProfilePage() {
   const { user } = useAuth();
-  const [profile, setProfile] = useLocalStorage('company-profile', {
-    ...MOCK_COMPANY_PROFILE,
-    companyName: user?.companyName ?? user?.company?.name ?? MOCK_COMPANY_PROFILE.companyName,
-    recruiterName: user?.fullName ?? user?.name ?? MOCK_COMPANY_PROFILE.recruiterName,
-    email: user?.email ?? '',
-  });
-  const [form, setForm] = useState(profile);
-  const [notice, setNotice] = useState('');
+  const [profile, setProfile] = useState(EMPTY_PROFILE);
+  const [exists, setExists] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
+
+  useEffect(() => {
+    let active = true;
+    getCompanyProfile()
+      .then((data) => {
+        if (!active) return;
+        setProfile({
+          companyName: data.companyName || "",
+          website: data.website || "",
+          location: data.location || "",
+          industry: data.industry || "",
+          description: data.description || "",
+          verificationStatus: data.verificationStatus || "pending",
+          rejectionReason: data.rejectionReason || "",
+        });
+        setExists(true);
+      })
+      .catch((err) => {
+        if (!active) return;
+        if (/not found/i.test(err.message)) setExists(false);
+        else setError(err.message || "Unable to load company profile.");
+      })
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, []);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
-    setForm((previous) => ({ ...previous, [name]: value }));
-    setNotice('');
+    setProfile((current) => ({ ...current, [name]: value }));
+    setNotice("");
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
-    setProfile(form);
-    setNotice('Company profile saved in this browser.');
+    setError("");
+    setNotice("");
+    setSaving(true);
+    const payload = {
+      companyName: profile.companyName.trim(),
+      website: profile.website.trim(),
+      location: profile.location.trim(),
+      industry: profile.industry.trim(),
+      description: profile.description.trim(),
+    };
+    try {
+      const data = exists ? await updateCompanyProfile(payload) : await createCompanyProfile(payload);
+      setExists(true);
+      setProfile((current) => ({ ...current, ...data }));
+      setNotice("Company profile saved successfully.");
+    } catch (err) {
+      setError(err.message || "Unable to save company profile.");
+    } finally {
+      setSaving(false);
+    }
   };
 
+  if (loading) return <p className="p-8 text-sm text-text-secondary">Loading company profile…</p>;
+
+  const status = profile.verificationStatus || "pending";
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
+    <div className="mx-auto max-w-3xl space-y-5">
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold text-text-primary">Company profile</h1>
-        <p className="text-sm text-text-secondary mt-1">Manage the company information shown to internship candidates.</p>
+        <h1 className="text-2xl font-bold text-text-primary">Company profile</h1>
+        <p className="mt-1 text-sm text-text-secondary">Update the information reviewed by the platform administrator.</p>
       </div>
-      <Card padding="lg">
-        <div className="flex items-center gap-4 mb-6">
-          <Avatar name={form.companyName} size="xl" />
-          <div>
-            <h2 className="font-semibold text-text-primary">{form.companyName}</h2>
-            <p className="text-xs text-text-secondary">{form.industry}</p>
-          </div>
+      {error && <p role="alert" className="rounded-lg bg-danger-50 p-3 text-sm text-danger-700">{error}</p>}
+      <Card padding="lg" className="space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div><h2 className="font-semibold text-text-primary">{profile.companyName || "New company profile"}</h2><p className="text-xs text-text-muted">{user?.email}</p></div>
+          {exists && <Badge variant={status === "approved" ? "success" : status === "rejected" ? "danger" : "warning"}>{status}</Badge>}
         </div>
+        {exists && status === "rejected" && profile.rejectionReason && <p className="rounded-lg bg-danger-50 p-3 text-sm text-danger-700">Administrator feedback: {profile.rejectionReason}</p>}
+        {exists && status === "pending" && <p className="text-xs text-text-secondary">Your company is waiting for verification. Changes to the profile may require a new review.</p>}
         <form onSubmit={handleSubmit} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Input label="Company name" name="companyName" value={form.companyName ?? ''} onChange={handleChange} required />
-          <Input label="Recruiter name" name="recruiterName" value={form.recruiterName ?? ''} onChange={handleChange} required />
-          <Input label="Recruiter email" name="email" type="email" value={form.email ?? ''} onChange={handleChange} />
-          <Input label="Industry" name="industry" value={form.industry ?? ''} onChange={handleChange} />
-          <Input label="Headquarters" name="headquarters" value={form.headquarters ?? ''} onChange={handleChange} />
-          <div className="sm:col-span-2 flex flex-wrap items-center justify-between gap-3">
-            <p role="status" className="text-xs text-success-600">{notice}</p>
-            <Button type="submit">Save company profile</Button>
+          <label className="text-sm font-medium text-text-secondary">Company name<input name="companyName" required minLength={2} maxLength={120} value={profile.companyName} onChange={handleChange} className="mt-1 h-10 w-full rounded-lg border border-border px-3 text-sm text-text-primary" /></label>
+          <label className="text-sm font-medium text-text-secondary">Website<input name="website" type="url" placeholder="https://example.com" value={profile.website} onChange={handleChange} className="mt-1 h-10 w-full rounded-lg border border-border px-3 text-sm text-text-primary" /></label>
+          <label className="text-sm font-medium text-text-secondary">Location<input name="location" maxLength={120} value={profile.location} onChange={handleChange} className="mt-1 h-10 w-full rounded-lg border border-border px-3 text-sm text-text-primary" /></label>
+          <label className="text-sm font-medium text-text-secondary">Industry<input name="industry" maxLength={100} value={profile.industry} onChange={handleChange} className="mt-1 h-10 w-full rounded-lg border border-border px-3 text-sm text-text-primary" /></label>
+          <label className="sm:col-span-2 text-sm font-medium text-text-secondary">Company description<textarea name="description" rows={5} maxLength={2000} value={profile.description} onChange={handleChange} className="mt-1 w-full rounded-lg border border-border p-3 text-sm text-text-primary" /></label>
+          <div className="sm:col-span-2 flex items-center justify-between gap-3">
+            <p role="status" className="text-xs text-success-700">{notice}</p>
+            <Button type="submit" disabled={saving}>{saving ? "Saving…" : exists ? "Save changes" : "Create company profile"}</Button>
           </div>
         </form>
       </Card>
-      <p className="text-[11px] text-text-muted">Prototype mode: profile edits are saved in localStorage on this device. Connect a company profile API for shared data.</p>
     </div>
   );
 }
