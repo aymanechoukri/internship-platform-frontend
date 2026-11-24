@@ -16,7 +16,7 @@ export function InternshipDetailsPage() {
   const [loading, setLoading] = useState(true);
   const [applying, setApplying] = useState(false);
   const [error, setError] = useState("");
-  const [notice, setNotice] = useState("");
+  const [, setNotice] = useState("");
 
   useEffect(() => {
     let active = true;
