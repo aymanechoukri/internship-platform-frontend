@@ -40,7 +40,7 @@ export function InternshipDetailsPage() {
       active = false;
       window.clearTimeout(timer);
     };
- [id]);
+  }, [id]);
 
   const isSaved = savedIds.includes(id);
   const expired = internship?.deadline && new Date(internship.deadline).getTime() < CURRENT_TIME;
