@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Badge, Button, Card } from "../../components/ui/index.js";
 import { downloadApplicantCV, getCompanyApplications, updateCompanyApplicationStatus } from "../../services/companyService.js";
+import { useFeedback } from "../../context/FeedbackContext.jsx";
 
 const statusStyle = {
   Pending: { label: "Pending", variant: "warning" },
@@ -8,7 +9,7 @@ const statusStyle = {
   Rejected: { label: "Rejected", variant: "danger" },
 };
 
-export function CompanyApplicantsPage() {
+export function CompanyApplicantsPage() {\n  const { notify } = useFeedback();
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -45,7 +46,7 @@ export function CompanyApplicantsPage() {
       anchor.click();
       anchor.remove();
       URL.revokeObjectURL(url);
-    } catch (err) { setError(err.message || "Unable to download this CV."); }
+    } catch (err) { setError(err.message || "Unable to download this CV."); notify(err.message || "Unable to download this CV.", "error"); }
     finally { setDownloadingId(""); }
   };
 
@@ -54,9 +55,9 @@ export function CompanyApplicantsPage() {
     try {
       const result = await updateCompanyApplicationStatus(id, status);
       const updated = result?._id ? result : result?.data;
-      setApplications((current) => current.map((item) => item._id === id ? { ...item, status: updated?.status || status } : item));
+      setApplications((current) => current.map((item) => item._id === id ? { ...item, status: updated?.status || status } : item));\n      notify(`Application marked as ${updated?.status || status}.`, "success");
     } catch (err) {
-      setError(err.message || "Unable to update application status.");
+      setError(err.message || "Unable to update application status.");\n      notify(err.message || "Unable to update application status.", "error");
     } finally { setUpdatingId(""); }
   };
 
