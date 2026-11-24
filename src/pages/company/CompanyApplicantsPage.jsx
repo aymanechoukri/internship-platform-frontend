@@ -84,8 +84,8 @@ export function CompanyApplicantsPage() {
               </div>
               <div className="flex flex-wrap items-center gap-2 shrink-0">
                 <Badge variant={meta.variant}>{meta.label}</Badge>
-                <Button size="sm" variant="outline" disabled={updatingId === application._id || application.status === "Accepted"} onClick={() => updateStatus(application._id, "Accepted")}>{updatingId === application._id ? "Saving…" : "Accept"}</Button>
-                <Button size="sm" variant="ghost" disabled={updatingId === application._id || application.status === "Rejected"} onClick={() => updateStatus(application._id, "Rejected")}>Reject</Button>
+                <Button size="sm" variant="outline" disabled={updatingId === application._id || application.status !== "Pending"} onClick={() => updateStatus(application._id, "Accepted")}>{updatingId === application._id ? "Saving…" : "Accept"}</Button>
+                <Button size="sm" variant="ghost" disabled={updatingId === application._id || application.status !== "Pending"} onClick={() => updateStatus(application._id, "Rejected")}>Reject</Button>
               </div>
             </article>;
           })}
