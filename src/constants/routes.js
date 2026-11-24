@@ -16,6 +16,7 @@ export const ROUTES = {
   STUDENT_INTERNSHIPS: '/student/internships',
   STUDENT_INTERNSHIP_DETAILS: '/student/internships/:id',
   STUDENT_PROFILE: '/student/profile',
+  STUDENT_CV: '/student/cv',
   STUDENT_APPLICATIONS: '/student/applications',
   STUDENT_SEARCH: '/student/internships',
 
