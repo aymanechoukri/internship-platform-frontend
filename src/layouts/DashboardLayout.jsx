@@ -6,7 +6,8 @@
  */
 
 import { useState } from 'react';
-import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
+import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../hooks/index.js';
 import { Avatar, Badge } from '../components/ui/index.js';
 import { ROUTES } from '../constants/routes.js';
 import { MOCK_COMPANY_PROFILE } from '../constants/mockCompanyDashboard.js';
@@ -121,6 +122,8 @@ function ArrowRightOnRectangleIcon() {
 
 export function DashboardLayout({ children }) {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
@@ -145,23 +148,23 @@ export function DashboardLayout({ children }) {
 
   const currentProfile = isCompany
     ? {
-        name: MOCK_COMPANY_PROFILE.recruiterName,
-        subtitle: MOCK_COMPANY_PROFILE.companyName,
+        name: user?.fullName ?? user?.name ?? MOCK_COMPANY_PROFILE.recruiterName,
+        subtitle: user?.companyName ?? user?.company?.name ?? MOCK_COMPANY_PROFILE.companyName,
         roleBadge: 'Company',
         roleBadgeVariant: 'primary',
-        switchTarget: ROUTES.STUDENT_DASHBOARD,
-        switchLabel: 'Switch to Student View',
       }
     : {
-        name: MOCK_STUDENT_PROFILE.fullName,
-        subtitle: MOCK_STUDENT_PROFILE.university,
+        name: user?.fullName ?? user?.name ?? MOCK_STUDENT_PROFILE.fullName,
+        subtitle: user?.university ?? user?.school ?? MOCK_STUDENT_PROFILE.university,
         roleBadge: 'Student',
         roleBadgeVariant: 'info',
-        switchTarget: ROUTES.COMPANY_DASHBOARD,
-        switchLabel: 'Switch to Company View',
       };
 
   const closeMobileMenu = () => setMobileMenuOpen(false);
+  const handleSignOut = () => {
+    logout();
+    navigate(ROUTES.LOGIN, { replace: true });
+  };
 
   return (
     <div className="min-h-screen bg-bg flex flex-col md:flex-row">
@@ -219,15 +222,7 @@ export function DashboardLayout({ children }) {
               {currentProfile.roleBadge}
             </Badge>
           </div>
-          <Link
-            to={currentProfile.switchTarget}
-            onClick={closeMobileMenu}
-            className="inline-flex items-center gap-1 text-[11px] font-semibold text-primary-600 hover:text-primary-700 bg-white border border-border px-2 py-0.5 rounded shadow-2xs hover:bg-primary-50 transition-colors"
-            title="Switch portal view"
-          >
-            <ArrowRightLeftIcon />
-            <span>Switch</span>
-          </Link>
+          <span className="text-[11px] font-medium text-text-muted">Authenticated session</span>
         </div>
 
         {/* Sidebar Navigation Links */}
@@ -275,14 +270,15 @@ export function DashboardLayout({ children }) {
                 </p>
               </div>
             </div>
-            <Link
-              to={ROUTES.LOGIN}
+            <button
+              type="button"
+              onClick={handleSignOut}
               className="p-1.5 text-text-muted hover:text-danger-500 rounded transition-colors"
               title="Sign out"
               aria-label="Sign out"
             >
               <ArrowRightOnRectangleIcon />
-            </Link>
+            </button>
           </div>
         </div>
       </aside>
@@ -405,22 +401,14 @@ export function DashboardLayout({ children }) {
                     <p className="text-[11px] text-text-muted truncate">{currentProfile.subtitle}</p>
                   </div>
                   <div className="py-1">
-                    <Link
-                      to={currentProfile.switchTarget}
-                      onClick={() => setProfileMenuOpen(false)}
-                      className="flex items-center gap-2 px-4 py-2 text-xs text-primary-600 hover:bg-primary-50 font-medium"
-                    >
-                      <ArrowRightLeftIcon />
-                      <span>{currentProfile.switchLabel}</span>
-                    </Link>
-                    <Link
-                      to={ROUTES.LOGIN}
-                      onClick={() => setProfileMenuOpen(false)}
-                      className="flex items-center gap-2 px-4 py-2 text-xs text-danger-500 hover:bg-red-50 font-medium"
+                    <button
+                      type="button"
+                      onClick={handleSignOut}
+                      className="flex w-full items-center gap-2 px-4 py-2 text-xs text-danger-500 hover:bg-red-50 font-medium text-left"
                     >
                       <ArrowRightOnRectangleIcon />
                       <span>Sign Out</span>
-                    </Link>
+                    </button>
                   </div>
                 </div>
               )}
