@@ -6,11 +6,12 @@
  */
 
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button, Card, Input } from '../../components/ui/index.js';
 import { ROLES } from '../../constants/roles.js';
 import { ROUTES } from '../../constants/routes.js';
 import { isStrongPassword, isValidEmail } from '../../utils/validators.js';
+import { register as createAccount } from '../../services/authService.js';
 
 /* ── Inline SVG Icons ── */
 function EyeIcon() {
@@ -134,6 +135,7 @@ function BuildingOfficeIcon() {
 }
 
 export function RegisterPage() {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -206,10 +208,9 @@ export function RegisterPage() {
     return nextErrors;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmittedMessage('');
-
     const validationErrors = validate();
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
@@ -217,14 +218,19 @@ export function RegisterPage() {
     }
 
     setIsSubmitting(true);
-
-    // Frontend-only presentation simulation (no backend connection)
-    setTimeout(() => {
+    try {
+      await createAccount({
+        name: formData.fullName.trim(),
+        email: formData.email.trim(),
+        password: formData.password,
+        role: formData.accountType,
+      });
+      navigate(ROUTES.LOGIN, { replace: true, state: { message: 'Account created successfully. Please sign in.' } });
+    } catch (error) {
+      setSubmittedMessage(error.message || 'Unable to create your account. Please try again.');
+    } finally {
       setIsSubmitting(false);
-      setSubmittedMessage(
-        `Registration validated for ${formData.fullName} (${formData.accountType}). (Frontend-only mode — backend not connected yet)`
-      );
-    }, 600);
+    }
   };
 
   return (
@@ -241,13 +247,13 @@ export function RegisterPage() {
       {submittedMessage && (
         <div
           role="status"
-          className="mb-5 p-3.5 rounded-lg bg-primary-50 border border-primary-200 text-xs text-primary-800 flex items-start gap-2"
+          className="mb-5 p-3.5 rounded-lg bg-danger-50 border border-danger-200 text-xs text-danger-700 flex items-start gap-2"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 20 20"
             fill="currentColor"
-            className="w-4 h-4 text-primary-600 shrink-0 mt-0.5"
+            className="w-4 h-4 text-danger-600 shrink-0 mt-0.5"
             aria-hidden="true"
           >
             <path
