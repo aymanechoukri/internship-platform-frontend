@@ -4,6 +4,7 @@ import { Button, Card, Badge, Input, Spinner } from '../../components/ui/index.j
 import apiClient from '../../services/apiClient.js';
 import { ROUTES } from '../../constants/routes.js';
 import useAuth from '../../hooks/useAuth.js';
+import { useFeedback } from '../../context/FeedbackContext.jsx';
 
 const TABS = [
   { id: 'overview', label: 'Overview' },
@@ -70,6 +71,7 @@ function TableFrame({ children }) {
 export function AdminDashboardPage() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const { notify, confirm, prompt } = useFeedback();
   const [tab, setTab] = useState('overview');
   const [overview, setOverview] = useState(null);
   const [items, setItems] = useState([]);
@@ -147,7 +149,7 @@ export function AdminDashboardPage() {
   const toggleUser = async (item) => {
     const nextActive = item.isActive === false;
     const label = nextActive ? 'enable' : 'disable';
-    if (!window.confirm(`Are you sure you want to ${label} ${item.name}?`)) return;
+    if (!(await confirm(`Are you sure you want to ${label} ${item.name}?`, { title: `Confirm account ${label}`, confirmText: label === 'enable' ? 'Enable account' : 'Disable account', danger: !nextActive }))) return;
     setActionId(item._id);
     setError('');
     setNotice('');
@@ -156,57 +158,57 @@ export function AdminDashboardPage() {
         method: 'PATCH',
         body: JSON.stringify({ isActive: nextActive }),
       });
-      setNotice(`Account ${nextActive ? 'enabled' : 'disabled'} successfully.`);
+      notify(`Account ${nextActive ? 'enabled' : 'disabled'} successfully.`, 'success');
       await refresh();
     } catch (err) {
-      setError(err.message || 'Could not update this account.');
+      setError(err.message || 'Could not update this account.'); notify(err.message || 'Could not update this account.', 'error');
     } finally {
       setActionId('');
     }
   };
 
   const reviewCompany = async (item, decision) => {
-    const reason = decision === 'rejected' ? window.prompt('Reason for rejection (required):') : '';
+    const reason = decision === 'rejected' ? await prompt('Please provide a reason for rejecting this company. (At least 5 characters)', { title: 'Rejection reason', placeholder: 'Enter the reason', required: true, confirmText: 'Continue' }) : '';
     if (decision === 'rejected' && (!reason || reason.trim().length < 5)) return;
-    if (!window.confirm(`${decision === 'approved' ? 'Approve' : 'Reject'} ${item.companyName}?`)) return;
+    if (!(await confirm(`${decision === 'approved' ? 'Approve' : 'Reject'} ${item.companyName}?`, { title: 'Confirm company review', confirmText: decision === 'approved' ? 'Approve company' : 'Reject company', danger: decision === 'rejected' }))) return;
     setActionId(item._id); setError(''); setNotice('');
-    try { await apiClient(`/admin/companies/${item._id}/review`, { method: 'PATCH', body: JSON.stringify({ decision, reason }) }); setNotice(`Company ${decision}.`); await refresh(); }
-    catch (err) { setError(err.message || 'Company review failed.'); } finally { setActionId(''); }
+    try { await apiClient(`/admin/companies/${item._id}/review`, { method: 'PATCH', body: JSON.stringify({ decision, reason }) }); notify(`Company ${decision}.`, 'success'); await refresh(); }
+    catch (err) { setError(err.message || 'Company review failed.'); notify(err.message || 'Company review failed.', 'error'); } finally { setActionId(''); }
   };
 
   const reviewInternship = async (item, decision) => {
-    const reason = decision === 'rejected' ? window.prompt('Reason for rejection (required):') : '';
+    const reason = decision === 'rejected' ? await prompt('Please provide a reason for rejecting this internship. (At least 5 characters)', { title: 'Rejection reason', placeholder: 'Enter the reason', required: true, confirmText: 'Continue' }) : '';
     if (decision === 'rejected' && (!reason || reason.trim().length < 5)) return;
-    if (!window.confirm(`${decision === 'approved' ? 'Approve' : 'Reject'} internship “${item.title}”?`)) return;
+    if (!(await confirm(`${decision === 'approved' ? 'Approve' : 'Reject'} internship “${item.title}”?`, { title: 'Confirm internship review', confirmText: decision === 'approved' ? 'Approve internship' : 'Reject internship', danger: decision === 'rejected' }))) return;
     setActionId(item._id); setError(''); setNotice('');
-    try { await apiClient(`/admin/internships/${item._id}/review`, { method: 'PATCH', body: JSON.stringify({ decision, reason }) }); setNotice(`Internship ${decision}.`); await refresh(); }
-    catch (err) { setError(err.message || 'Internship review failed.'); } finally { setActionId(''); }
+    try { await apiClient(`/admin/internships/${item._id}/review`, { method: 'PATCH', body: JSON.stringify({ decision, reason }) }); notify(`Internship ${decision}.`, 'success'); await refresh(); }
+    catch (err) { setError(err.message || 'Internship review failed.'); notify(err.message || 'Internship review failed.', 'error'); } finally { setActionId(''); }
   };
 
   const deleteUser = async (item) => {
-    if (!window.confirm(`Permanently delete ${item.name} and associated profile data? This cannot be undone.`)) return;
+    if (!(await confirm(`Permanently delete ${item.name} and associated profile data? This cannot be undone.`, { title: 'Delete user permanently?', confirmText: 'Delete user', danger: true }))) return;
     setActionId(item._id); setError(''); setNotice('');
-    try { await apiClient(`/admin/users/${item._id}`, { method: 'DELETE' }); setNotice('User and associated records deleted.'); await refresh(); }
-    catch (err) { setError(err.message || 'Could not delete user.'); } finally { setActionId(''); }
+    try { await apiClient(`/admin/users/${item._id}`, { method: 'DELETE' }); notify('User and associated records deleted.', 'success'); await refresh(); }
+    catch (err) { setError(err.message || 'Could not delete user.'); notify(err.message || 'Could not delete user.', 'error'); } finally { setActionId(''); }
   };
 
   const editUser = async (item) => {
-    const name = window.prompt('Update full name:', item.name); if (name === null) return;
-    const email = window.prompt('Update email:', item.email); if (email === null) return;
+    const name = await prompt('Update the user full name.', { title: 'Edit user', placeholder: 'Full name', defaultValue: item.name, required: true, confirmText: 'Next' }); if (name === null) return;
+    const email = await prompt('Update the user email address.', { title: 'Edit user email', placeholder: 'Email address', defaultValue: item.email, required: true, confirmText: 'Save details' }); if (email === null) return;
     setActionId(item._id); setError(''); setNotice('');
-    try { await apiClient(`/admin/users/${item._id}`, { method: 'PATCH', body: JSON.stringify({ name, email }) }); setNotice('User details updated.'); await refresh(); }
-    catch (err) { setError(err.message || 'Could not update user.'); } finally { setActionId(''); }
+    try { await apiClient(`/admin/users/${item._id}`, { method: 'PATCH', body: JSON.stringify({ name, email }) }); notify('User details updated.', 'success'); await refresh(); }
+    catch (err) { setError(err.message || 'Could not update user.'); notify(err.message || 'Could not update user.', 'error'); } finally { setActionId(''); }
   };
 
   const sendNotification = async (event) => {
     event.preventDefault(); setError(''); setNotice('');
-    try { const response = await apiClient('/admin/notifications', { method: 'POST', body: JSON.stringify({ title: notificationTitle, content: notificationContent, audience: notificationAudience }) }); setNotice(`Notification sent to ${response.data.sent} accounts.`); setNotificationTitle(''); setNotificationContent(''); }
-    catch (err) { setError(err.message || 'Could not send notification.'); }
+    try { const response = await apiClient('/admin/notifications', { method: 'POST', body: JSON.stringify({ title: notificationTitle, content: notificationContent, audience: notificationAudience }) }); notify(`Notification sent to ${response.data.sent} accounts.`, 'success'); setNotificationTitle(''); setNotificationContent(''); }
+    catch (err) { setError(err.message || 'Could not send notification.'); notify(err.message || 'Could not send notification.', 'error'); }
   };
 
   const toggleInternship = async (item) => {
     const nextActive = !item.isActive;
-    if (!window.confirm(`Are you sure you want to ${nextActive ? 'publish' : 'pause'} “${item.title}”?`)) return;
+    if (!(await confirm(`Are you sure you want to ${nextActive ? 'publish' : 'pause'} “${item.title}”?`, { title: 'Confirm listing status', confirmText: nextActive ? 'Publish listing' : 'Pause listing' }))) return;
     setActionId(item._id);
     setError('');
     setNotice('');
@@ -215,10 +217,10 @@ export function AdminDashboardPage() {
         method: 'PATCH',
         body: JSON.stringify({ isActive: nextActive }),
       });
-      setNotice(`Internship ${nextActive ? 'published' : 'paused'} successfully.`);
+      notify(`Internship ${nextActive ? 'published' : 'paused'} successfully.`, 'success');
       await refresh();
     } catch (err) {
-      setError(err.message || 'Could not update this internship.');
+      setError(err.message || 'Could not update this internship.'); notify(err.message || 'Could not update this internship.', 'error');
     } finally {
       setActionId('');
     }
@@ -260,7 +262,7 @@ export function AdminDashboardPage() {
         </nav>
 
         {error && <div role="alert" className="flex items-start justify-between gap-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"><span>{error}</span><button onClick={() => setError('')} aria-label="Dismiss error">×</button></div>}
-        {notice && <div role="status" className="flex items-start justify-between gap-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700"><span>{notice}</span><button onClick={() => setNotice('')} aria-label="Dismiss message">×</button></div>}
+        
 
         {loading ? (
           <div className="flex min-h-64 items-center justify-center gap-3 text-sm text-text-secondary"><Spinner /> Loading administration data…</div>
