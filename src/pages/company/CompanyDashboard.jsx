@@ -5,9 +5,8 @@
  * active internship listings section, and quick action to post a new internship.
  */
 
-import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Avatar, Badge, Button, Card, Input } from '../../components/ui/index.js';
+import { Avatar, Badge, Button, Card } from '../../components/ui/index.js';
 import {
   MOCK_COMPANY_APPLICATIONS,
   MOCK_COMPANY_POSTS,
@@ -50,14 +49,6 @@ function CheckBadgeIcon() {
   );
 }
 
-function PlusIcon() {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
-      <path d="M10.75 4.75a.75.75 0 0 0-1.5 0v4.5h-4.5a.75.75 0 0 0 0 1.5h4.5v4.5a.75.75 0 0 0 1.5 0v-4.5h4.5a.75.75 0 0 0 0-1.5h-4.5v-4.5Z" />
-    </svg>
-  );
-}
-
 function ArrowRightIcon() {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
@@ -76,11 +67,6 @@ function EyeIcon() {
 }
 
 export function CompanyDashboard() {
-  const [modalOpen, setModalOpen] = useState(false);
-  const [newPostSuccess, setNewPostSuccess] = useState(false);
-  const [postTitle, setPostTitle] = useState('');
-  const [postDept, setPostDept] = useState('');
-
   const getStatIcon = (iconName) => {
     switch (iconName) {
       case 'briefcase':
@@ -94,19 +80,6 @@ export function CompanyDashboard() {
       default:
         return <BriefcaseIcon />;
     }
-  };
-
-  const handleCreateMockPost = (e) => {
-    e.preventDefault();
-    if (!postTitle.trim()) return;
-
-    setNewPostSuccess(true);
-    setTimeout(() => {
-      setModalOpen(false);
-      setNewPostSuccess(false);
-      setPostTitle('');
-      setPostDept('');
-    }, 1200);
   };
 
   return (
@@ -150,15 +123,11 @@ export function CompanyDashboard() {
 
         {/* Quick Action CTA: Publish an Internship */}
         <div className="flex items-center gap-3 shrink-0">
-          <Button
-            variant="primary"
-            size="md"
-            onClick={() => setModalOpen(true)}
-            className="shadow-xs"
-          >
-            <PlusIcon />
-            <span>Post New Internship</span>
-          </Button>
+          <Link to={ROUTES.COMPANY_INTERNSHIPS}>
+            <Button variant="primary" size="md" className="shadow-xs">
+              Post New Internship
+            </Button>
+          </Link>
           <Link to={ROUTES.COMPANY_APPLICANTS}>
             <Button variant="outline" size="md">
               Review Applicants
@@ -362,88 +331,7 @@ export function CompanyDashboard() {
         </div>
       </section>
 
-      {/* ── 5. Quick Action Modal (Post New Internship) ── */}
-      {modalOpen && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="modal-title"
-        >
-          <div className="bg-surface rounded-2xl border border-border shadow-xl max-w-lg w-full p-6 sm:p-8 animate-in fade-in zoom-in-95 duration-150">
-            <div className="flex items-center justify-between pb-4 border-b border-border mb-5">
-              <div>
-                <h3 id="modal-title" className="text-lg font-bold text-text-primary">
-                  Post New Internship
-                </h3>
-                <p className="text-xs text-text-muted">
-                  Quick action (Mock creation for demonstration)
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setModalOpen(false)}
-                className="p-1 rounded-lg text-text-muted hover:text-text-primary hover:bg-secondary-100"
-                aria-label="Close modal"
-              >
-                ✕
-              </button>
-            </div>
 
-            {newPostSuccess ? (
-              <div className="text-center py-6 space-y-3">
-                <div className="w-12 h-12 rounded-full bg-success-50 text-success-600 flex items-center justify-center mx-auto">
-                  <CheckBadgeIcon />
-                </div>
-                <h4 className="text-base font-bold text-text-primary">
-                  Internship Draft Created!
-                </h4>
-                <p className="text-xs text-text-secondary max-w-sm mx-auto">
-                  &ldquo;{postTitle}&rdquo; has been added to your draft listings. (Frontend mock action).
-                </p>
-              </div>
-            ) : (
-              <form onSubmit={handleCreateMockPost} className="space-y-4">
-                <Input
-                  label="Internship Title"
-                  placeholder="e.g. AI Research Intern"
-                  value={postTitle}
-                  onChange={(e) => setPostTitle(e.target.value)}
-                  required
-                />
-                <Input
-                  label="Department / Team"
-                  placeholder="e.g. Machine Learning Systems"
-                  value={postDept}
-                  onChange={(e) => setPostDept(e.target.value)}
-                  required
-                />
-                <div className="p-3 bg-secondary-50 border border-border rounded-lg text-xs text-text-muted">
-                  ℹ️ This action creates a local simulation preview. Real submissions will communicate with the backend API in future phases.
-                </div>
-                <div className="flex items-center justify-end gap-3 pt-3">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="md"
-                    onClick={() => setModalOpen(false)}
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    type="submit"
-                    variant="primary"
-                    size="md"
-                    disabled={!postTitle.trim()}
-                  >
-                    Publish Listing
-                  </Button>
-                </div>
-              </form>
-            )}
-          </div>
-        </div>
-      )}
     </div>
   );
 }
