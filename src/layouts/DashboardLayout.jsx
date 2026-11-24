@@ -12,7 +12,7 @@ import { Avatar, Badge } from '../components/ui/index.js';
 import { ROUTES } from '../constants/routes.js';
 import { MOCK_COMPANY_PROFILE } from '../constants/mockCompanyDashboard.js';
 import { MOCK_STUDENT_PROFILE } from '../constants/mockStudentDashboard.js';
-import { getCompanyNotifications, markCompanyNotificationRead } from '../services/companyService.js';
+import { getMyNotifications, markNotificationRead } from '../services/notificationService.js';
 
 /* ── Inline SVG Icons ── */
 function LogoIcon() {
@@ -130,32 +130,33 @@ export function DashboardLayout({ children }) {
   const navigationItems = isCompany
     ? [
         { label: 'Dashboard', to: ROUTES.COMPANY_DASHBOARD, icon: <GridIcon />, badge: null },
-        { label: 'Manage Internships', to: ROUTES.COMPANY_INTERNSHIPS, icon: <BriefcaseIcon />, badge: '4' },
-        { label: 'Applicants', to: ROUTES.COMPANY_APPLICANTS, icon: <UsersIcon />, badge: '18 new' },
+        { label: 'Manage Internships', to: ROUTES.COMPANY_INTERNSHIPS, icon: <BriefcaseIcon />, badge: null },
+        { label: 'Applicants', to: ROUTES.COMPANY_APPLICANTS, icon: <UsersIcon />, badge: null },
         { label: 'Company Profile', to: ROUTES.COMPANY_PROFILE, icon: <UserCircleIcon />, badge: null },
       ]
     : [
         { label: 'Dashboard', to: ROUTES.STUDENT_DASHBOARD, icon: <GridIcon />, badge: null },
-        { label: 'Browse Internships', to: ROUTES.STUDENT_INTERNSHIPS, icon: <BriefcaseIcon />, badge: 'New' },
-        { label: 'My Applications', to: ROUTES.STUDENT_APPLICATIONS, icon: <DocumentTextIcon />, badge: '5' },
+        { label: 'Browse Internships', to: ROUTES.STUDENT_INTERNSHIPS, icon: <BriefcaseIcon />, badge: null },
+        { label: 'My Applications', to: ROUTES.STUDENT_APPLICATIONS, icon: <DocumentTextIcon />, badge: null },
+        { label: 'My CV', to: ROUTES.STUDENT_CV, icon: <DocumentTextIcon />, badge: null },
         { label: 'My Profile', to: ROUTES.STUDENT_PROFILE, icon: <UserCircleIcon />, badge: null },
       ];
 
   useEffect(() => {
-    if (!isCompany) return undefined;
+    if (!user) return undefined;
     let active = true;
-    getCompanyNotifications().then((result) => {
+    getMyNotifications().then((result) => {
       if (!active) return;
       setCompanyNotifications(result.notifications || []);
       setUnreadNotifications(result.unreadCount || 0);
     }).catch(() => {});
     return () => { active = false; };
-  }, [isCompany]);
+  }, [isCompany, user?._id]);
 
-  const handleCompanyNotification = async (notification) => {
+  const handleNotification = async (notification) => {
     if (notification.isRead) return;
     try {
-      await markCompanyNotificationRead(notification._id);
+      await markNotificationRead(notification._id);
       setCompanyNotifications((current) => current.map((item) => item._id === notification._id ? { ...item, isRead: true } : item));
       setUnreadNotifications((count) => Math.max(0, count - 1));
     } catch {
@@ -354,7 +355,7 @@ export function DashboardLayout({ children }) {
                 aria-label="View notifications"
               >
                 <BellIcon />
-                {isCompany && unreadNotifications > 0 && <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-primary-600 ring-2 ring-white" />}
+                {unreadNotifications > 0 && <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-primary-600 ring-2 ring-white" />}
               </button>
 
               {/* Notifications Dropdown */}
@@ -362,17 +363,17 @@ export function DashboardLayout({ children }) {
                 <div className="absolute right-0 mt-2 w-80 max-w-[90vw] bg-surface rounded-xl shadow-lg border border-border py-2 z-50">
                   <div className="px-4 py-2 border-b border-border flex items-center justify-between">
                     <span className="text-xs font-semibold text-text-primary">Notifications</span>
-                    <span className="text-[10px] bg-primary-50 text-primary-700 px-1.5 py-0.5 rounded-full font-bold">{isCompany ? unreadNotifications : 0} unread</span>
+                    <span className="text-[10px] bg-primary-50 text-primary-700 px-1.5 py-0.5 rounded-full font-bold">{unreadNotifications} unread</span>
                   </div>
                   <div className="max-h-80 overflow-y-auto divide-y divide-border text-xs">
-                    {isCompany && companyNotifications.map((notification) => (
-                      <button key={notification._id} type="button" onClick={() => handleCompanyNotification(notification)} className={`block w-full px-4 py-3 text-left hover:bg-secondary-50 ${notification.isRead ? "opacity-70" : "bg-primary-50/40"}`}>
+                    {companyNotifications.map((notification) => (
+                      <button key={notification._id} type="button" onClick={() => handleNotification(notification)} className={`block w-full px-4 py-3 text-left hover:bg-secondary-50 ${notification.isRead ? "opacity-70" : "bg-primary-50/40"}`}>
                         <p className="font-semibold text-text-primary">{notification.title}</p>
                         <p className="text-text-secondary text-[11px] mt-0.5">{notification.content}</p>
                         <span className="text-[10px] text-text-muted mt-1 block">{notification.createdAt ? new Date(notification.createdAt).toLocaleString() : ""}{notification.isRead ? " · Read" : " · Mark as read"}</span>
                       </button>
                     ))}
-                    {(!isCompany || companyNotifications.length === 0) && <div className="px-4 py-5 text-center text-xs text-text-muted">You're all caught up.</div>}
+                    {companyNotifications.length === 0 && <div className="px-4 py-5 text-center text-xs text-text-muted">You're all caught up.</div>}
                   </div>
                 </div>
               )}
