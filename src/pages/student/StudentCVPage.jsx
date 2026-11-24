@@ -13,7 +13,7 @@ export function StudentCVPage() {
   const [uploading, setUploading] = useState(false);
   const [busyId, setBusyId] = useState("");
   const [error, setError] = useState("");
-  const [notice, setNotice] = useState("");
+  const [, setNotice] = useState("");
 
   const loadCVs = async () => setCvs(await getMyCVs());
 
