@@ -116,6 +116,7 @@ export function AdminDashboardPage() {
     setError('');
     try {
       if (tab === 'overview') await loadOverview();
+      else if (tab === 'notifications') { setItems([]); setPagination(null); }
       else await loadCollection();
     } catch (err) {
       setError(err.message || 'Unable to load administration data.');
