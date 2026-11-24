@@ -27,12 +27,13 @@ export function StudentCVPage() {
   const handleUpload = async (event) => {
     event.preventDefault();
     if (!file) { setError("Choose a PDF file first."); return; }
+    const formElement = event.currentTarget;
     setUploading(true); setError(""); setNotice("");
     try {
       await uploadMyCV(file);
       await loadCVs();
       setFile(null);
-      event.currentTarget.reset();
+      formElement.reset();
       setNotice("CV uploaded successfully.");
     } catch (err) { setError(err.message || "Unable to upload this CV."); }
     finally { setUploading(false); }
