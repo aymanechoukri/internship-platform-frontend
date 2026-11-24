@@ -11,6 +11,7 @@ import { AuthLayout } from '../layouts/AuthLayout.jsx';
 import { DashboardLayout } from '../layouts/DashboardLayout.jsx';
 import { ForgotPasswordPage, LoginPage, RegisterPage } from '../pages/auth/index.js';
 import { CompanyApplicantsPage, CompanyDashboard, CompanyInternshipsPage, CompanyProfilePage } from '../pages/company/index.js';
+import { AdminDashboardPage } from '../pages/admin/AdminDashboard.jsx';
 import { InternshipDetailsPage, StudentApplicationsPage, StudentDashboard, StudentInternshipsPage, StudentProfilePage } from '../pages/student/index.js';
 
 function RequireAuth({ allowedRoles }) {
@@ -91,6 +92,10 @@ export const router = createBrowserRouter([
       element: <DashboardLayout />,
       children: companyRoutes,
     }],
+  },
+  {
+    element: <RequireAuth allowedRoles={[ROLES.ADMIN]} />,
+    children: [{ path: ROUTES.ADMIN_DASHBOARD, element: <AdminDashboardPage /> }],
   },
   { path: ROUTES.HOME, element: <Navigate to={ROUTES.LOGIN} replace /> },
   { path: '*', element: <Navigate to={ROUTES.LOGIN} replace /> },
