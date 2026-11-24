@@ -22,17 +22,22 @@ export function StudentInternshipsPage() {
 
   useEffect(() => {
     let active = true;
-    setLoading(true);
-    setError("");
-    getInternships({ search, location, type, skill, page: 1, limit: 30 })
-      .then((result) => {
-        if (!active) return;
-        setInternships(result.internships);
-        setPagination(result.pagination);
-      })
-      .catch((err) => { if (active) setError(err.message || "Unable to load internships."); })
-      .finally(() => { if (active) setLoading(false); });
-    return () => { active = false; };
+    const timer = window.setTimeout(() => {
+      setLoading(true);
+      setError("");
+      getInternships({ search, location, type, skill, page: 1, limit: 30 })
+        .then((result) => {
+          if (!active) return;
+          setInternships(result.internships);
+          setPagination(result.pagination);
+        })
+        .catch((err) => { if (active) setError(err.message || "Unable to load internships."); })
+        .finally(() => { if (active) setLoading(false); });
+    }, 0);
+    return () => {
+      active = false;
+      window.clearTimeout(timer);
+    };
   }, [search, location, type, skill]);
 
   const toggleSaved = (id) => {
