@@ -102,7 +102,7 @@ export function AdminDashboardPage() {
     const params = new URLSearchParams({ page: String(page), limit: '10' });
     if (appliedSearch) params.set('search', appliedSearch);
     if (tab === 'users' && role !== 'all') params.set('role', role);
-    if ((tab === 'users' || tab === 'internships') && status !== 'all') params.set('status', status);
+    if ((['users', 'internships', 'applications'].includes(tab)) && status !== 'all') params.set('status', status);
     if (tab === 'companies' && status !== 'all') params.set('status', status);
     if (tab === 'internships' && moderationStatus !== 'all') params.set('moderationStatus', moderationStatus);
     const endpoint = ['users','companies','internships','applications','logs'].includes(tab) ? tab : 'users';
@@ -271,8 +271,8 @@ export function AdminDashboardPage() {
             </div>
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
               <StatCard label="Total accounts" value={stats?.totalUsers} detail={`${number(stats?.students)} students`} tone="blue" />
-              <StatCard label="Company accounts" value={stats?.companies} detail="Registered companies" tone="violet" />
-              <StatCard label="Internship listings" value={stats?.totalInternships} detail={`${number(stats?.activeInternships)} currently active`} tone="green" />
+              <StatCard label="Company accounts" value={stats?.companies} detail={`${number(stats?.pendingCompanies)} awaiting verification`} tone="violet" />
+              <StatCard label="Internship listings" value={stats?.totalInternships} detail={`${number(stats?.pendingInternships)} awaiting moderation`} tone="green" />
               <StatCard label="Applications" value={applicationTotal} detail={`${number(stats?.applications?.pending)} pending review`} tone="amber" />
             </div>
             <div className="grid gap-4 lg:grid-cols-2">
@@ -304,7 +304,7 @@ export function AdminDashboardPage() {
               <form onSubmit={applySearch} className="flex flex-col gap-3 border-b border-border p-4 sm:flex-row sm:items-end">
                 <div className="min-w-0 flex-1"><Input label="Search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder={tab === 'users' ? 'Name or email address' : tab === 'companies' ? 'Company, industry or location' : 'Internship title or location'} /></div>
                 {tab === 'users' && <label className="flex flex-col gap-1.5 text-sm font-medium text-text-primary">Role<select className="h-10 rounded-lg border border-border bg-white px-3 text-sm" value={role} onChange={(event) => { setRole(event.target.value); setPage(1); }}><option value="all">All roles</option><option value="student">Student</option><option value="company">Company</option><option value="admin">Admin</option></select></label>}
-                {(tab === 'users' || tab === 'internships' || tab === 'companies') && <label className="flex flex-col gap-1.5 text-sm font-medium text-text-primary">Status<select className="h-10 rounded-lg border border-border bg-white px-3 text-sm" value={status} onChange={(event) => { setStatus(event.target.value); setPage(1); }}><option value="all">All statuses</option><option value={tab === 'users' ? 'active' : 'active'}>Active</option>{tab === 'users' ? <option value="disabled">Disabled</option> : tab === 'internships' ? <option value="inactive">Inactive</option> : <><option value="pending">Pending</option><option value="approved">Approved</option><option value="rejected">Rejected</option></>}</select></label>}
+                {(['users', 'internships', 'companies', 'applications'].includes(tab)) && <label className="flex flex-col gap-1.5 text-sm font-medium text-text-primary">Status<select className="h-10 rounded-lg border border-border bg-white px-3 text-sm" value={status} onChange={(event) => { setStatus(event.target.value); setPage(1); }}><option value="all">All statuses</option>{tab === 'users' ? <><option value="active">Active</option><option value="disabled">Disabled</option></> : tab === 'internships' ? <><option value="active">Active</option><option value="inactive">Inactive</option></> : tab === 'applications' ? <><option value="Pending">Pending</option><option value="Accepted">Accepted</option><option value="Rejected">Rejected</option></> : <><option value="pending">Pending</option><option value="approved">Approved</option><option value="rejected">Rejected</option></>}</select></label>}
                 {tab === 'internships' && <label className="flex flex-col gap-1.5 text-sm font-medium text-text-primary">Review<select className="h-10 rounded-lg border border-border bg-white px-3 text-sm" value={moderationStatus} onChange={(event) => { setModerationStatus(event.target.value); setPage(1); }}><option value="all">All reviews</option><option value="pending">Pending</option><option value="approved">Approved</option><option value="rejected">Rejected</option></select></label>}
                 <Button type="submit">Search</Button>
               </form>
