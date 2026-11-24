@@ -5,8 +5,10 @@ import { ROUTES } from "../../constants/routes.js";
 import useLocalStorage from "../../hooks/useLocalStorage.js";
 import { applyForInternship, getMyApplications } from "../../services/applicationService.js";
 import { getInternshipById } from "../../services/internshipService.js";
+import { useFeedback } from "../../context/FeedbackContext.jsx";
 
 export function InternshipDetailsPage() {
+  const { notify } = useFeedback();
   const { id } = useParams();
   const [internship, setInternship] = useState(null);
   const [alreadyApplied, setAlreadyApplied] = useState(false);
@@ -37,14 +39,18 @@ export function InternshipDetailsPage() {
   const expired = internship?.deadline && new Date(internship.deadline).getTime() < Date.now();
   const companyName = internship?.company?.companyName || internship?.company?.user?.name || "Verified company";
 
-  const toggleSaved = () => setSavedIds((current) => current.includes(id) ? current.filter((item) => item !== id) : [...current, id]);
+  const toggleSaved = () => {
+    const wasSaved = savedIds.includes(id);
+    setSavedIds((current) => current.includes(id) ? current.filter((item) => item !== id) : [...current, id]);
+    notify(wasSaved ? "Internship removed from saved items." : "Internship saved successfully.", "success");
+  };
 
   const handleApply = async () => {
     setApplying(true); setError(""); setNotice("");
     try {
       await applyForInternship(id);
       setAlreadyApplied(true);
-      setNotice("Your application has been submitted successfully. You can track its status in My Applications.");
+      notify("Your application has been submitted successfully.", "success");
     } catch (err) {
       setError(err.message || "Unable to submit your application.");
     } finally { setApplying(false); }
@@ -63,7 +69,7 @@ export function InternshipDetailsPage() {
     <div className="mx-auto max-w-5xl space-y-6">
       <Link to={ROUTES.STUDENT_INTERNSHIPS} className="text-sm font-semibold text-primary-600">← Back to internships</Link>
       {error && <p role="alert" className="rounded-lg bg-danger-50 p-3 text-sm text-danger-700">{error}</p>}
-      {notice && <p role="status" className="rounded-lg bg-success-50 p-3 text-sm text-success-700">{notice}</p>}
+      
       <Card padding="lg" className="space-y-5">
         <div className="flex flex-col justify-between gap-5 sm:flex-row">
           <div className="flex items-start gap-4"><Avatar name={companyName} size="xl" /><div><p className="text-sm font-semibold text-primary-700">{companyName}</p><h1 className="mt-1 text-2xl font-bold text-text-primary">{internship.title}</h1><p className="mt-2 text-sm text-text-secondary">{internship.location || "Location not specified"} · {internship.type} · {internship.duration || "Duration not specified"}</p></div></div>
