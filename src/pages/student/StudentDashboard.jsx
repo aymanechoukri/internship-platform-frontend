@@ -99,10 +99,10 @@ export function StudentDashboard() {
           </span>
         </div>
         <Link
-          to={ROUTES.COMPANY_DASHBOARD}
+          to={ROUTES.STUDENT_INTERNSHIPS}
           className="text-primary-700 hover:text-primary-800 font-semibold underline underline-offset-2 shrink-0 hidden sm:inline"
         >
-          View Company Dashboard →
+          Browse Internships →
         </Link>
       </div>
 
