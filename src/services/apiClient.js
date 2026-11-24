@@ -40,6 +40,7 @@ async function apiClient(endpoint, options = {}) {
   }
 
   if (response.status === 204) return null;
+  if (options.responseType === "blob") return response.blob();
   const contentType = response.headers.get('content-type') ?? '';
   return contentType.includes('application/json') ? response.json() : response.text();
 }
