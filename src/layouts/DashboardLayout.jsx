@@ -103,14 +103,6 @@ function XMarkIcon() {
   );
 }
 
-function ArrowRightLeftIcon() {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5">
-      <path fillRule="evenodd" d="M15.312 11.424a5.5 5.5 0 0 1-9.201 2.466l-.312-.311h2.433a.75.75 0 0 0 0-1.5H3.75a.75.75 0 0 0-.75.75v4.482a.75.75 0 0 0 1.5 0v-2.147l.423.422a7 7 0 0 0 11.708-3.136.75.75 0 0 0-1.319-.526ZM4.688 8.576a5.5 5.5 0 0 1 9.201-2.466l.312.311H11.77a.75.75 0 0 0 0 1.5h4.48a.75.75 0 0 0 .75-.75V2.689a.75.75 0 0 0-1.5 0v2.147l-.423-.422A7 7 0 0 0 3.37 7.55a.75.75 0 1 0 1.318.526Z" clipRule="evenodd" />
-    </svg>
-  );
-}
-
 function ArrowRightOnRectangleIcon() {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
