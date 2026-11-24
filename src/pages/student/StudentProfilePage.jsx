@@ -6,7 +6,8 @@ import { useFeedback } from "../../context/FeedbackContext.jsx";
 
 const EMPTY_PROFILE = { university: "", major: "", faculty: "", graduationYear: "", phone: "", bio: "" };
 
-export function StudentProfilePage() {\n  const { notify } = useFeedback();
+export function StudentProfilePage() {
+  const { notify } = useFeedback();
   const { user } = useAuth();
   const [profile, setProfile] = useState(EMPTY_PROFILE);
   const [exists, setExists] = useState(false);
@@ -62,7 +63,8 @@ export function StudentProfilePage() {\n  const { notify } = useFeedback();
       setExists(true);
       notify("Your profile has been saved successfully.", "success");
     } catch (err) {
-      setError(err.message || "Unable to save your profile.");\n      notify(err.message || "Unable to save your profile.", "error");
+      setError(err.message || "Unable to save your profile.");
+      notify(err.message || "Unable to save your profile.", "error");
     } finally { setSaving(false); }
   };
 
