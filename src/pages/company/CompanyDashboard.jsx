@@ -93,10 +93,10 @@ export function CompanyDashboard() {
           </span>
         </div>
         <Link
-          to={ROUTES.STUDENT_DASHBOARD}
+          to={ROUTES.COMPANY_INTERNSHIPS}
           className="text-primary-700 hover:text-primary-800 font-semibold underline underline-offset-2 shrink-0 hidden sm:inline"
         >
-          View Student Dashboard →
+          Manage Internships →
         </Link>
       </div>
 
@@ -244,9 +244,9 @@ export function CompanyDashboard() {
                     </td>
 
                     <td className="py-3.5 px-4 text-right">
-                      <Button variant="ghost" size="sm" className="text-xs font-semibold text-primary-600 hover:text-primary-700">
+                      <Link to={ROUTES.COMPANY_APPLICANTS} className="text-xs font-semibold text-primary-600 hover:text-primary-700">
                         Review
-                      </Button>
+                      </Link>
                     </td>
                   </tr>
                 ))}
@@ -318,12 +318,12 @@ export function CompanyDashboard() {
               <div className="pt-3 border-t border-border flex items-center justify-between text-xs">
                 <span className="text-[11px] text-text-muted">Posted {post.postedDate}</span>
                 <div className="flex items-center gap-2">
-                  <Button variant="outline" size="sm">
-                    Edit
-                  </Button>
-                  <Button variant="primary" size="sm">
-                    View Applicants
-                  </Button>
+                  <Link to={ROUTES.COMPANY_INTERNSHIPS}>
+                    <Button variant="outline" size="sm">Manage</Button>
+                  </Link>
+                  <Link to={ROUTES.COMPANY_APPLICANTS}>
+                    <Button variant="primary" size="sm">View Applicants</Button>
+                  </Link>
                 </div>
               </div>
             </Card>
