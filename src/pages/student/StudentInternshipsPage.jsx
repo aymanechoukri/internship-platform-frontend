@@ -4,10 +4,12 @@ import { Avatar, Badge, Button, Card } from "../../components/ui/index.js";
 import { ROUTES } from "../../constants/routes.js";
 import useLocalStorage from "../../hooks/useLocalStorage.js";
 import { getInternships } from "../../services/internshipService.js";
+import { useFeedback } from "../../context/FeedbackContext.jsx";
 
 const formatSalary = (value) => Number(value || 0) > 0 ? `${Number(value).toLocaleString()} MAD` : "Not specified";
 
 export function StudentInternshipsPage() {
+  const { notify } = useFeedback();
   const [search, setSearch] = useState("");
   const [location, setLocation] = useState("");
   const [type, setType] = useState("");
@@ -34,7 +36,9 @@ export function StudentInternshipsPage() {
   }, [search, location, type, skill]);
 
   const toggleSaved = (id) => {
+    const wasSaved = savedIds.includes(id);
     setSavedIds((current) => current.includes(id) ? current.filter((item) => item !== id) : [...current, id]);
+    notify(wasSaved ? "Internship removed from saved items." : "Internship saved successfully.", "success");
   };
 
   const clearFilters = () => { setSearch(""); setLocation(""); setType(""); setSkill(""); };
