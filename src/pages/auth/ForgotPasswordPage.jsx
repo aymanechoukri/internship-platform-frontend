@@ -10,6 +10,7 @@ import { Link } from 'react-router-dom';
 import { Button, Card, Input } from '../../components/ui/index.js';
 import { ROUTES } from '../../constants/routes.js';
 import { isValidEmail } from '../../utils/validators.js';
+import { requestPasswordReset } from '../../services/authService.js';
 
 /* ── Inline SVG Icons ── */
 function MailIcon() {
@@ -69,27 +70,27 @@ export function ForgotPasswordPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-
     if (!email.trim()) {
       setError('Email address is required');
       return;
     }
-
     if (!isValidEmail(email.trim())) {
       setError('Please enter a valid email address');
       return;
     }
 
     setIsSubmitting(true);
-
-    // Frontend-only presentation simulation (no backend connection)
-    setTimeout(() => {
-      setIsSubmitting(false);
+    try {
+      await requestPasswordReset(email.trim());
       setIsSubmitted(true);
-    }, 600);
+    } catch (requestError) {
+      setError(requestError.message || 'Unable to request a password reset. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
