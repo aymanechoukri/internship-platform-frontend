@@ -291,6 +291,3 @@ html[data-theme="dark"] textarea::placeholder {
   color: var(--color-text-muted);
 }
 
-html[data-theme="dark"] .hover\\:bg-white:hover {
-  background-color: var(--color-secondary-100);
-}
