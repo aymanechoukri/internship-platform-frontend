@@ -7,6 +7,8 @@ import { applyForInternship, getMyApplications } from "../../services/applicatio
 import { getInternshipById } from "../../services/internshipService.js";
 import { useFeedback } from "../../context/FeedbackContext.jsx";
 
+const CURRENT_TIME = Date.now();
+
 export function InternshipDetailsPage() {
   const { notify } = useFeedback();
   const { id } = useParams();
@@ -20,23 +22,28 @@ export function InternshipDetailsPage() {
 
   useEffect(() => {
     let active = true;
-    setLoading(true);
-    Promise.all([
-      getInternshipById(id),
-      getMyApplications().catch(() => []),
-    ])
-      .then(([listing, applications]) => {
-        if (!active) return;
-        setInternship(listing);
-        setAlreadyApplied(applications.some((item) => String(item.internship?._id || item.internship) === String(id)));
-      })
-      .catch((err) => { if (active) setError(err.message || "Internship not found."); })
-      .finally(() => { if (active) setLoading(false); });
-    return () => { active = false; };
-  }, [id]);
+    const timer = window.setTimeout(() => {
+      setLoading(true);
+      Promise.all([
+        getInternshipById(id),
+        getMyApplications().catch(() => []),
+      ])
+        .then(([listing, applications]) => {
+          if (!active) return;
+          setInternship(listing);
+          setAlreadyApplied(applications.some((item) => String(item.internship?._id || item.internship) === String(id)));
+        })
+        .catch((err) => { if (active) setError(err.message || "Internship not found."); })
+        .finally(() => { if (active) setLoading(false); });
+    }, 0);
+    return () => {
+      active = false;
+      window.clearTimeout(timer);
+    };
+ [id]);
 
   const isSaved = savedIds.includes(id);
-  const expired = internship?.deadline && new Date(internship.deadline).getTime() < Date.now();
+  const expired = internship?.deadline && new Date(internship.deadline).getTime() < CURRENT_TIME;
   const companyName = internship?.company?.companyName || internship?.company?.user?.name || "Verified company";
 
   const toggleSaved = () => {
