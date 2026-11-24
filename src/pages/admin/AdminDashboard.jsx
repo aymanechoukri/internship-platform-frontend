@@ -10,6 +10,9 @@ const TABS = [
   { id: 'users', label: 'Users' },
   { id: 'companies', label: 'Companies' },
   { id: 'internships', label: 'Internships' },
+  { id: 'applications', label: 'Applications' },
+  { id: 'notifications', label: 'Notifications' },
+  { id: 'logs', label: 'Activity Logs' },
 ];
 
 const number = (value) => new Intl.NumberFormat().format(value ?? 0);
@@ -76,6 +79,10 @@ export function AdminDashboardPage() {
   const [appliedSearch, setAppliedSearch] = useState('');
   const [role, setRole] = useState('all');
   const [status, setStatus] = useState('all');
+  const [moderationStatus, setModerationStatus] = useState('all');
+  const [notificationTitle, setNotificationTitle] = useState('');
+  const [notificationContent, setNotificationContent] = useState('');
+  const [notificationAudience, setNotificationAudience] = useState('all');
   const [loading, setLoading] = useState(true);
   const [actionId, setActionId] = useState('');
   const [error, setError] = useState('');
@@ -96,11 +103,13 @@ export function AdminDashboardPage() {
     if (appliedSearch) params.set('search', appliedSearch);
     if (tab === 'users' && role !== 'all') params.set('role', role);
     if ((tab === 'users' || tab === 'internships') && status !== 'all') params.set('status', status);
-    const endpoint = tab === 'users' ? 'users' : tab === 'companies' ? 'companies' : 'internships';
+    if (tab === 'companies' && status !== 'all') params.set('status', status);
+    if (tab === 'internships' && moderationStatus !== 'all') params.set('moderationStatus', moderationStatus);
+    const endpoint = ['users','companies','internships','applications','logs'].includes(tab) ? tab : 'users';
     const response = await apiClient(`/admin/${endpoint}?${params.toString()}`);
     setItems(response.data.items ?? []);
     setPagination(response.data.pagination ?? null);
-  }, [tab, page, appliedSearch, role, status]);
+  }, [tab, page, appliedSearch, role, status, moderationStatus]);
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -124,6 +133,7 @@ export function AdminDashboardPage() {
     setAppliedSearch('');
     setRole('all');
     setStatus('all');
+    setModerationStatus('all');
     setNotice('');
   };
 
@@ -152,6 +162,45 @@ export function AdminDashboardPage() {
     } finally {
       setActionId('');
     }
+  };
+
+  const reviewCompany = async (item, decision) => {
+    const reason = decision === 'rejected' ? window.prompt('Reason for rejection (required):') : '';
+    if (decision === 'rejected' && (!reason || reason.trim().length < 5)) return;
+    if (!window.confirm(`${decision === 'approved' ? 'Approve' : 'Reject'} ${item.companyName}?`)) return;
+    setActionId(item._id); setError(''); setNotice('');
+    try { await apiClient(`/admin/companies/${item._id}/review`, { method: 'PATCH', body: JSON.stringify({ decision, reason }) }); setNotice(`Company ${decision}.`); await refresh(); }
+    catch (err) { setError(err.message || 'Company review failed.'); } finally { setActionId(''); }
+  };
+
+  const reviewInternship = async (item, decision) => {
+    const reason = decision === 'rejected' ? window.prompt('Reason for rejection (required):') : '';
+    if (decision === 'rejected' && (!reason || reason.trim().length < 5)) return;
+    if (!window.confirm(`${decision === 'approved' ? 'Approve' : 'Reject'} internship “${item.title}”?`)) return;
+    setActionId(item._id); setError(''); setNotice('');
+    try { await apiClient(`/admin/internships/${item._id}/review`, { method: 'PATCH', body: JSON.stringify({ decision, reason }) }); setNotice(`Internship ${decision}.`); await refresh(); }
+    catch (err) { setError(err.message || 'Internship review failed.'); } finally { setActionId(''); }
+  };
+
+  const deleteUser = async (item) => {
+    if (!window.confirm(`Permanently delete ${item.name} and associated profile data? This cannot be undone.`)) return;
+    setActionId(item._id); setError(''); setNotice('');
+    try { await apiClient(`/admin/users/${item._id}`, { method: 'DELETE' }); setNotice('User and associated records deleted.'); await refresh(); }
+    catch (err) { setError(err.message || 'Could not delete user.'); } finally { setActionId(''); }
+  };
+
+  const editUser = async (item) => {
+    const name = window.prompt('Update full name:', item.name); if (name === null) return;
+    const email = window.prompt('Update email:', item.email); if (email === null) return;
+    setActionId(item._id); setError(''); setNotice('');
+    try { await apiClient(`/admin/users/${item._id}`, { method: 'PATCH', body: JSON.stringify({ name, email }) }); setNotice('User details updated.'); await refresh(); }
+    catch (err) { setError(err.message || 'Could not update user.'); } finally { setActionId(''); }
+  };
+
+  const sendNotification = async (event) => {
+    event.preventDefault(); setError(''); setNotice('');
+    try { const response = await apiClient('/admin/notifications', { method: 'POST', body: JSON.stringify({ title: notificationTitle, content: notificationContent, audience: notificationAudience }) }); setNotice(`Notification sent to ${response.data.sent} accounts.`); setNotificationTitle(''); setNotificationContent(''); }
+    catch (err) { setError(err.message || 'Could not send notification.'); }
   };
 
   const toggleInternship = async (item) => {
@@ -248,24 +297,31 @@ export function AdminDashboardPage() {
         ) : (
           <section className="space-y-4">
             <div className="flex flex-wrap items-end justify-between gap-3">
-              <div><h2 className="text-lg font-bold text-text-primary">{tab === 'users' ? 'User management' : tab === 'companies' ? 'Company directory' : 'Internship moderation'}</h2><p className="text-sm text-text-secondary">{tab === 'users' ? 'Search accounts and control access to the platform.' : tab === 'companies' ? 'Review registered company profiles.' : 'Review listings and pause or republish opportunities.'}</p></div>
+              <div><h2 className="text-lg font-bold text-text-primary">{tab === 'users' ? 'User management' : tab === 'companies' ? 'Company verification' : tab === 'internships' ? 'Internship moderation' : tab === 'applications' ? 'Applications' : tab === 'logs' ? 'Activity logs' : 'Notifications'}</h2><p className="text-sm text-text-secondary">{tab === 'users' ? 'Search accounts and control access to the platform.' : tab === 'companies' ? 'Approve or reject employer accounts.' : tab === 'internships' ? 'Review listings before publication.' : tab === 'applications' ? 'Monitor applications across the platform.' : tab === 'logs' ? 'Review administrator actions.' : 'Send platform announcements and account notifications.'}</p></div>
               <Button size="sm" variant="outline" onClick={refresh}>Refresh</Button>
             </div>
             <Card padding="none">
               <form onSubmit={applySearch} className="flex flex-col gap-3 border-b border-border p-4 sm:flex-row sm:items-end">
                 <div className="min-w-0 flex-1"><Input label="Search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder={tab === 'users' ? 'Name or email address' : tab === 'companies' ? 'Company, industry or location' : 'Internship title or location'} /></div>
                 {tab === 'users' && <label className="flex flex-col gap-1.5 text-sm font-medium text-text-primary">Role<select className="h-10 rounded-lg border border-border bg-white px-3 text-sm" value={role} onChange={(event) => { setRole(event.target.value); setPage(1); }}><option value="all">All roles</option><option value="student">Student</option><option value="company">Company</option><option value="admin">Admin</option></select></label>}
-                {(tab === 'users' || tab === 'internships') && <label className="flex flex-col gap-1.5 text-sm font-medium text-text-primary">Status<select className="h-10 rounded-lg border border-border bg-white px-3 text-sm" value={status} onChange={(event) => { setStatus(event.target.value); setPage(1); }}><option value="all">All statuses</option><option value={tab === 'users' ? 'active' : 'active'}>Active</option><option value={tab === 'users' ? 'disabled' : 'inactive'}>{tab === 'users' ? 'Disabled' : 'Inactive'}</option></select></label>}
+                {(tab === 'users' || tab === 'internships' || tab === 'companies') && <label className="flex flex-col gap-1.5 text-sm font-medium text-text-primary">Status<select className="h-10 rounded-lg border border-border bg-white px-3 text-sm" value={status} onChange={(event) => { setStatus(event.target.value); setPage(1); }}><option value="all">All statuses</option><option value={tab === 'users' ? 'active' : 'active'}>Active</option>{tab === 'users' ? <option value="disabled">Disabled</option> : tab === 'internships' ? <option value="inactive">Inactive</option> : <><option value="pending">Pending</option><option value="approved">Approved</option><option value="rejected">Rejected</option></>}</select></label>}
+                {tab === 'internships' && <label className="flex flex-col gap-1.5 text-sm font-medium text-text-primary">Review<select className="h-10 rounded-lg border border-border bg-white px-3 text-sm" value={moderationStatus} onChange={(event) => { setModerationStatus(event.target.value); setPage(1); }}><option value="all">All reviews</option><option value="pending">Pending</option><option value="approved">Approved</option><option value="rejected">Rejected</option></select></label>}
                 <Button type="submit">Search</Button>
               </form>
 
               {items.length === 0 ? <EmptyState title="No results found" message="Try changing your search or filters." /> : tab === 'users' ? (
                 <TableFrame><thead className="bg-secondary-50 text-xs uppercase tracking-wide text-text-muted"><tr><th className="px-4 py-3">User</th><th className="px-4 py-3">Role</th><th className="px-4 py-3">Joined</th><th className="px-4 py-3">Status</th><th className="px-4 py-3 text-right">Action</th></tr></thead><tbody className="divide-y divide-border">{items.map((item) => <tr key={item._id}><td className="px-4 py-4"><p className="font-semibold text-text-primary">{item.name}</p><p className="text-xs text-text-muted">{item.email}</p></td><td className="px-4 py-4"><Badge variant={item.role === 'admin' ? 'primary' : 'default'}>{item.role}</Badge></td><td className="px-4 py-4 text-text-secondary">{date(item.createdAt)}</td><td className="px-4 py-4"><StatusBadge active={item.isActive !== false} /></td><td className="px-4 py-4 text-right"><Button size="sm" variant={item.isActive === false ? 'primary' : 'outline'} disabled={actionId === item._id || (item.role === 'admin' && item._id === user?._id)} onClick={() => toggleUser(item)}>{actionId === item._id ? 'Saving…' : item.isActive === false ? 'Enable' : 'Disable'}</Button></td></tr>)}</tbody></TableFrame>
               ) : tab === 'companies' ? (
-                <TableFrame><thead className="bg-secondary-50 text-xs uppercase tracking-wide text-text-muted"><tr><th className="px-4 py-3">Company</th><th className="px-4 py-3">Industry</th><th className="px-4 py-3">Location</th><th className="px-4 py-3">Account owner</th><th className="px-4 py-3">Joined</th></tr></thead><tbody className="divide-y divide-border">{items.map((item) => <tr key={item._id}><td className="px-4 py-4 font-semibold text-text-primary">{item.companyName}</td><td className="px-4 py-4 text-text-secondary">{item.industry || '—'}</td><td className="px-4 py-4 text-text-secondary">{item.location || '—'}</td><td className="px-4 py-4"><p className="text-text-primary">{item.user?.name ?? '—'}</p><p className="text-xs text-text-muted">{item.user?.email ?? ''}</p></td><td className="px-4 py-4 text-text-secondary">{date(item.createdAt)}</td></tr>)}</tbody></TableFrame>
+                <TableFrame><thead className="bg-secondary-50 text-xs uppercase tracking-wide text-text-muted"><tr><th className="px-4 py-3">Company</th><th className="px-4 py-3">Industry</th><th className="px-4 py-3">Location</th><th className="px-4 py-3">Account owner</th><th className="px-4 py-3">Verification</th><th className="px-4 py-3">Joined</th><th className="px-4 py-3">Review</th></tr></thead><tbody className="divide-y divide-border">{items.map((item) => <tr key={item._id}><td className="px-4 py-4 font-semibold text-text-primary">{item.companyName}</td><td className="px-4 py-4 text-text-secondary">{item.industry || '—'}</td><td className="px-4 py-4 text-text-secondary">{item.location || '—'}</td><td className="px-4 py-4"><p className="text-text-primary">{item.user?.name ?? '—'}</p><p className="text-xs text-text-muted">{item.user?.email ?? ''}</p></td><td className="px-4 py-4"><Badge variant={item.verificationStatus === 'approved' ? 'success' : item.verificationStatus === 'rejected' ? 'danger' : 'warning'}>{item.verificationStatus || 'pending'}</Badge>{item.rejectionReason && <p className="mt-1 max-w-48 text-xs text-red-600">{item.rejectionReason}</p>}</td><td className="px-4 py-4 text-text-secondary">{date(item.createdAt)}</td><td className="px-4 py-4"><div className="flex gap-2"><Button size="sm" disabled={actionId === item._id || item.verificationStatus === 'approved'} onClick={() => reviewCompany(item, 'approved')}>Approve</Button><Button size="sm" variant="outline" disabled={actionId === item._id || item.verificationStatus === 'rejected'} onClick={() => reviewCompany(item, 'rejected')}>Reject</Button></div></td></tr>)}</tbody></TableFrame>
               ) : (
-                <TableFrame><thead className="bg-secondary-50 text-xs uppercase tracking-wide text-text-muted"><tr><th className="px-4 py-3">Opportunity</th><th className="px-4 py-3">Company</th><th className="px-4 py-3">Type</th><th className="px-4 py-3">Created</th><th className="px-4 py-3">Status</th><th className="px-4 py-3 text-right">Action</th></tr></thead><tbody className="divide-y divide-border">{items.map((item) => <tr key={item._id}><td className="px-4 py-4"><p className="font-semibold text-text-primary">{item.title}</p><p className="text-xs text-text-muted">{item.location || 'Location not specified'}</p></td><td className="px-4 py-4 text-text-secondary">{item.company?.companyName ?? '—'}</td><td className="px-4 py-4 text-text-secondary">{item.type}</td><td className="px-4 py-4 text-text-secondary">{date(item.createdAt)}</td><td className="px-4 py-4"><StatusBadge active={item.isActive} /></td><td className="px-4 py-4 text-right"><Button size="sm" variant={item.isActive ? 'outline' : 'primary'} disabled={actionId === item._id} onClick={() => toggleInternship(item)}>{actionId === item._id ? 'Saving…' : item.isActive ? 'Pause' : 'Publish'}</Button></td></tr>)}</tbody></TableFrame>
-              )}
+                <TableFrame><thead className="bg-secondary-50 text-xs uppercase tracking-wide text-text-muted"><tr><th className="px-4 py-3">Opportunity</th><th className="px-4 py-3">Company</th><th className="px-4 py-3">Type</th><th className="px-4 py-3">Created</th><th className="px-4 py-3">Status</th><th className="px-4 py-3">Review</th><th className="px-4 py-3 text-right">Action</th></tr></thead><tbody className="divide-y divide-border">{items.map((item) => <tr key={item._id}><td className="px-4 py-4"><p className="font-semibold text-text-primary">{item.title}</p><p className="text-xs text-text-muted">{item.location || 'Location not specified'}</p></td><td className="px-4 py-4 text-text-secondary">{item.company?.companyName ?? '—'}</td><td className="px-4 py-4 text-text-secondary">{item.type}</td><td className="px-4 py-4 text-text-secondary">{date(item.createdAt)}</td><td className="px-4 py-4"><StatusBadge active={item.isActive} /></td><td className="px-4 py-4"><Badge variant={item.moderationStatus === 'approved' ? 'success' : item.moderationStatus === 'rejected' ? 'danger' : 'warning'}>{item.moderationStatus || 'pending'}</Badge></td><td className="px-4 py-4 text-right"><div className="flex gap-2"><Button size="sm" disabled={actionId === item._id || item.moderationStatus === 'approved'} onClick={() => reviewInternship(item, 'approved')}>Approve</Button><Button size="sm" variant="outline" disabled={actionId === item._id || item.moderationStatus === 'rejected'} onClick={() => reviewInternship(item, 'rejected')}>Reject</Button><Button size="sm" variant="outline" disabled={actionId === item._id} onClick={() => toggleInternship(item)}>{item.isActive ? 'Pause' : 'Publish'}</Button></div></td></tr>)}</tbody></TableFrame>
+              ) : tab === 'applications' ? (
+                <TableFrame><thead className="bg-secondary-50 text-xs uppercase tracking-wide text-text-muted"><tr><th className="px-4 py-3">Student</th><th className="px-4 py-3">Internship</th><th className="px-4 py-3">Company</th><th className="px-4 py-3">Status</th><th className="px-4 py-3">Applied</th></tr></thead><tbody className="divide-y divide-border">{items.map((item) => <tr key={item._id}><td className="px-4 py-4">{item.student?.user?.name || '—'}<p className="text-xs text-text-muted">{item.student?.user?.email || ''}</p></td><td className="px-4 py-4">{item.internship?.title || '—'}</td><td className="px-4 py-4">{item.internship?.company?.companyName || '—'}</td><td className="px-4 py-4"><Badge>{item.status}</Badge></td><td className="px-4 py-4">{date(item.createdAt)}</td></tr>)}</tbody></TableFrame>
+              ) : tab === 'logs' ? (
+                <TableFrame><thead className="bg-secondary-50 text-xs uppercase tracking-wide text-text-muted"><tr><th className="px-4 py-3">Administrator</th><th className="px-4 py-3">Action</th><th className="px-4 py-3">Target</th><th className="px-4 py-3">Details</th><th className="px-4 py-3">Date</th></tr></thead><tbody className="divide-y divide-border">{items.map((item) => <tr key={item._id}><td className="px-4 py-4">{item.admin?.name || '—'}</td><td className="px-4 py-4">{item.action}</td><td className="px-4 py-4">{item.targetType}</td><td className="px-4 py-4">{item.details || '—'}</td><td className="px-4 py-4">{date(item.createdAt)}</td></tr>)}</tbody></TableFrame>
+              ) : tab === 'notifications' ? (
+                <form onSubmit={sendNotification} className="space-y-4 p-5"><label className="block text-sm font-medium">Audience<select className="mt-1 h-10 w-full rounded-lg border border-border bg-white px-3" value={notificationAudience} onChange={(event) => setNotificationAudience(event.target.value)}><option value="all">All users</option><option value="students">Students</option><option value="companies">Companies</option></select></label><label className="block text-sm font-medium">Title<input required maxLength={120} className="mt-1 h-10 w-full rounded-lg border border-border px-3" value={notificationTitle} onChange={(event) => setNotificationTitle(event.target.value)} /></label><label className="block text-sm font-medium">Message<textarea required maxLength={2000} rows={4} className="mt-1 w-full rounded-lg border border-border p-3" value={notificationContent} onChange={(event) => setNotificationContent(event.target.value)} /></label><Button type="submit">Send notification</Button></form>
+              ) : null}
               <Pagination pagination={pagination} onPage={setPage} />
             </Card>
           </section>
