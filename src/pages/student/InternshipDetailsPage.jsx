@@ -9,6 +9,9 @@ import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { Avatar, Badge, Button, Card } from '../../components/ui/index.js';
 import { MOCK_INTERNSHIPS } from '../../constants/mockInternships.js';
+import { MOCK_STUDENT_APPLICATIONS } from '../../constants/mockStudentDashboard.js';
+import useAuth from '../../hooks/useAuth.js';
+import useLocalStorage from '../../hooks/useLocalStorage.js';
 import { ROUTES } from '../../constants/routes.js';
 
 /* ── Inline SVG Icons ── */
@@ -85,7 +88,11 @@ function UserGroupIcon() {
 
 export function InternshipDetailsPage() {
   const { id } = useParams();
-  const [isSaved, setIsSaved] = useState(false);
+  const { user } = useAuth();
+  const [applications, setApplications] = useLocalStorage('student-applications', MOCK_STUDENT_APPLICATIONS);
+  const [savedInternshipIds, setSavedInternshipIds] = useLocalStorage('saved-internships', []);
+  const [applicationNotice, setApplicationNotice] = useState('');
+  const isSaved = savedInternshipIds.includes(id);
   const [applyModalOpen, setApplyModalOpen] = useState(false);
   const [applicationSubmitted, setApplicationSubmitted] = useState(false);
   const [saveNotice, setSaveNotice] = useState('');
@@ -118,17 +125,43 @@ export function InternshipDetailsPage() {
     );
   }
 
+  const alreadyApplied = applications.some((application) => (
+    application.internshipId === id
+    || (application.internshipTitle === internship.title && application.companyName === internship.company)
+  ));
+
   const handleToggleSave = () => {
-    setIsSaved((prev) => {
-      const next = !prev;
-      setSaveNotice(next ? 'Internship saved to your bookmarks!' : 'Internship removed from bookmarks.');
-      setTimeout(() => setSaveNotice(''), 2500);
-      return next;
-    });
+    setSavedInternshipIds((previous) => (
+      previous.includes(id) ? previous.filter((savedId) => savedId !== id) : [...previous, id]
+    ));
+    setSaveNotice(savedInternshipIds.includes(id) ? 'Internship removed from bookmarks.' : 'Internship saved to your bookmarks!');
+    setTimeout(() => setSaveNotice(''), 2500);
   };
 
-  const handleDemoApply = (e) => {
-    e.preventDefault();
+  const handleDemoApply = (event) => {
+    event.preventDefault();
+    if (alreadyApplied) {
+      setApplicationNotice('You have already submitted an application for this internship.');
+      setApplicationSubmitted(true);
+      return;
+    }
+
+    const formData = new FormData(event.currentTarget);
+    const application = {
+      id: 'local-' + Date.now(),
+      internshipId: internship.id,
+      internshipTitle: internship.title,
+      companyName: internship.company,
+      location: internship.location,
+      appliedDate: new Date().toLocaleDateString(),
+      status: 'submitted',
+      statusLabel: 'Submitted',
+      coverNote: String(formData.get('coverNote') || '').trim(),
+      studentName: user?.fullName || user?.name || 'Demo Student',
+      studentEmail: user?.email || '',
+    };
+    setApplications((previous) => [application, ...previous]);
+    setApplicationNotice('Your demo application was saved in this browser.');
     setApplicationSubmitted(true);
   };
 
@@ -436,10 +469,10 @@ export function InternshipDetailsPage() {
                   <CheckCircleIcon />
                 </div>
                 <h4 className="text-base font-bold text-text-primary">
-                  Demo Application Registered!
+                  Application update
                 </h4>
                 <p className="text-xs text-text-secondary max-w-sm mx-auto leading-relaxed">
-                  In this frontend demo mode, your interest in <strong>{internship.title}</strong> at <strong>{internship.company}</strong> has been simulated. No real email or submission was sent to the employer.
+                  {applicationNotice || 'Your application status is available in My Applications.'} This prototype stores the record locally; it does not send it to the employer.
                 </p>
                 <div className="pt-3">
                   <Button variant="primary" size="md" onClick={() => setApplyModalOpen(false)}>
@@ -450,7 +483,7 @@ export function InternshipDetailsPage() {
             ) : (
               <form onSubmit={handleDemoApply} className="space-y-4 text-xs">
                 <div className="p-3 bg-secondary-50 border border-border rounded-xl text-text-secondary leading-relaxed">
-                  👋 Your student profile (<strong>Sarah Chen</strong>, Stanford University) and uploaded resume will be attached to this application simulation.
+                  👋 Your signed-in profile ({user?.fullName || user?.name || 'Demo Student'}) will be associated with this local application record.
                 </div>
 
                 <div className="space-y-1.5">
@@ -459,6 +492,7 @@ export function InternshipDetailsPage() {
                   </label>
                   <textarea
                     id="cover-note"
+                    name="coverNote"
                     rows={3}
                     placeholder="Briefly highlight relevant coursework, side projects, or interest in this team…"
                     className="w-full p-2.5 rounded-lg border border-border bg-white text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-primary-500 focus:outline-none"
