@@ -1,34 +1,29 @@
 /**
- * @file hooks/useLocalStorage.js
- * @description Syncs a piece of state with localStorage.
- * Useful for persisting tokens, user preferences, etc.
- *
- * @template T
- * @param {string} key - The localStorage key
- * @param {T} initialValue - Fallback value when nothing is stored
- * @returns {[T, (value: T) => void]}
+ * React state synchronized with localStorage.
+ * Supports both direct values and functional state updates.
  */
-
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 
 function useLocalStorage(key, initialValue) {
   const [storedValue, setStoredValue] = useState(() => {
     try {
       const item = window.localStorage.getItem(key);
-      return item ? JSON.parse(item) : initialValue;
+      return item !== null ? JSON.parse(item) : initialValue;
     } catch {
       return initialValue;
     }
   });
 
-  const setValue = (value) => {
+  const setValue = useCallback((value) => {
+    const nextValue = typeof value === 'function' ? value(storedValue) : value;
+    setStoredValue(nextValue);
+
     try {
-      setStoredValue(value);
-      window.localStorage.setItem(key, JSON.stringify(value));
+      window.localStorage.setItem(key, JSON.stringify(nextValue));
     } catch (error) {
-      console.error(`useLocalStorage: failed to set "${key}"`, error);
+      console.error(`useLocalStorage: failed to persist "${key}"`, error);
     }
-  };
+  }, [key, storedValue]);
 
   return [storedValue, setValue];
 }
