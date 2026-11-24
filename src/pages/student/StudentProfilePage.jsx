@@ -2,10 +2,11 @@ import { useEffect, useState } from "react";
 import { Avatar, Button, Card } from "../../components/ui/index.js";
 import useAuth from "../../hooks/useAuth.js";
 import { createStudentProfile, getStudentProfile, updateStudentProfile } from "../../services/studentService.js";
+import { useFeedback } from "../../context/FeedbackContext.jsx";
 
 const EMPTY_PROFILE = { university: "", major: "", faculty: "", graduationYear: "", phone: "", bio: "" };
 
-export function StudentProfilePage() {
+export function StudentProfilePage() {\n  const { notify } = useFeedback();
   const { user } = useAuth();
   const [profile, setProfile] = useState(EMPTY_PROFILE);
   const [exists, setExists] = useState(false);
@@ -59,9 +60,9 @@ export function StudentProfilePage() {
       if (exists) await updateStudentProfile(payload);
       else await createStudentProfile(payload);
       setExists(true);
-      setNotice("Your profile has been saved successfully.");
+      notify("Your profile has been saved successfully.", "success");
     } catch (err) {
-      setError(err.message || "Unable to save your profile.");
+      setError(err.message || "Unable to save your profile.");\n      notify(err.message || "Unable to save your profile.", "error");
     } finally { setSaving(false); }
   };
 
@@ -103,7 +104,7 @@ export function StudentProfilePage() {
             <textarea name="bio" rows={4} maxLength={1000} value={profile.bio} onChange={handleChange} className="mt-1.5 w-full rounded-lg border border-border p-3 text-sm font-normal text-text-primary" placeholder="Introduce your academic interests and experience…" />
           </label>
           <div className="sm:col-span-2 flex flex-wrap items-center justify-between gap-3">
-            <p role="status" className="text-xs text-success-700">{notice}</p>
+            
             <Button type="submit" disabled={saving}>{saving ? "Saving…" : exists ? "Save profile" : "Create profile"}</Button>
           </div>
         </form>
