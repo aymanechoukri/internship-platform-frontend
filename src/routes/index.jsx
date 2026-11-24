@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 /**
  * @file routes/index.jsx
  * @description Application route tree with authentication and role guards.
