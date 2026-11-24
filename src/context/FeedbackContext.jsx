@@ -1,7 +1,9 @@
+/* eslint-disable react-refresh/only-export-components */
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
 
 const FeedbackContext = createContext(null);
 let nextToastId = 0;
+let nextDialogId = 0;
 
 function ToastItem({ toast, onDismiss }) {
   useEffect(() => {
@@ -28,9 +30,7 @@ function ToastItem({ toast, onDismiss }) {
 }
 
 function FeedbackDialog({ dialog, onClose }) {
-  const [value, setValue] = useState("");
-
-  useEffect(() => setValue(dialog?.defaultValue || ""), [dialog]);
+  const [value, setValue] = useState(dialog?.defaultValue || "");
 
   useEffect(() => {
     if (!dialog) return undefined;
@@ -79,7 +79,7 @@ export function FeedbackProvider({ children }) {
   }, []);
 
   const ask = useCallback((kind, message, options = {}) => new Promise((resolve) => {
-    setDialog({ kind, message, resolve, ...options });
+    setDialog({ id: ++nextDialogId, kind, message, resolve, ...options });
   }), []);
 
   const confirm = useCallback((message, options = {}) => ask("confirm", message, options), [ask]);
@@ -98,7 +98,7 @@ export function FeedbackProvider({ children }) {
       <div className="pointer-events-none fixed right-4 top-4 z-[110] flex w-[calc(100%-2rem)] flex-col items-end gap-3 sm:right-6 sm:top-6">
         {toasts.map((toast) => <ToastItem key={toast.id} toast={toast} onDismiss={dismiss} />)}
       </div>
-      <FeedbackDialog dialog={dialog} onClose={closeDialog} />
+      <FeedbackDialog key={dialog?.id ?? "closed"} dialog={dialog} onClose={closeDialog} />
     </FeedbackContext.Provider>
   );
 }
