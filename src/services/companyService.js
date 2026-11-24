@@ -33,3 +33,5 @@ export const getCompanyNotifications = async () => unwrap(await apiClient("/noti
 export const markCompanyNotificationRead = async (id) => unwrap(await apiClient(`/notifications/${id}/read`, {
   method: "PATCH",
 }));
+
+export const downloadApplicantCV = async (cvId) => apiClient(`/cvs/applicant/${cvId}/download`, { responseType: "blob" });
