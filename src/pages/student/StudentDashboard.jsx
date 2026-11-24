@@ -6,13 +6,14 @@
  */
 
 import { useState } from 'react';
+import useAuth from '../../hooks/useAuth.js';
+import useLocalStorage from '../../hooks/useLocalStorage.js';
 import { Link } from 'react-router-dom';
 import { Avatar, Badge, Button, Card } from '../../components/ui/index.js';
 import {
   MOCK_RECOMMENDED_INTERNSHIPS,
   MOCK_STUDENT_APPLICATIONS,
   MOCK_STUDENT_PROFILE,
-  MOCK_STUDENT_STATS,
 } from '../../constants/mockStudentDashboard.js';
 import { ROUTES } from '../../constants/routes.js';
 
@@ -66,7 +67,25 @@ function ArrowRightIcon() {
 }
 
 export function StudentDashboard() {
+  const { user } = useAuth();
+  const [applications] = useLocalStorage('student-applications', MOCK_STUDENT_APPLICATIONS);
+  const [profile] = useLocalStorage('student-profile', {
+    ...MOCK_STUDENT_PROFILE,
+    fullName: user?.fullName ?? user?.name ?? MOCK_STUDENT_PROFILE.fullName,
+    email: user?.email ?? MOCK_STUDENT_PROFILE.email,
+  });
   const [filterStatus, setFilterStatus] = useState('all');
+
+  const dashboardName = user?.fullName ?? user?.name ?? profile.fullName;
+  const pendingCount = applications.filter((app) => ['submitted', 'under_review', 'interviewing'].includes(app.status)).length;
+  const acceptedCount = applications.filter((app) => app.status === 'accepted').length;
+  const rejectedCount = applications.filter((app) => app.status === 'rejected').length;
+  const dashboardStats = [
+    { id: 'stat-total', label: 'Total Applications', value: applications.length, change: 'Saved applications', changeType: 'neutral', icon: 'document' },
+    { id: 'stat-pending', label: 'In Progress', value: pendingCount, change: 'Awaiting an update', changeType: 'neutral', icon: 'clock' },
+    { id: 'stat-accepted', label: 'Accepted Offers', value: acceptedCount, change: 'Positive outcomes', changeType: 'positive', icon: 'check' },
+    { id: 'stat-rejected', label: 'Not Selected', value: rejectedCount, change: 'Closed applications', changeType: 'muted', icon: 'x' },
+  ];
 
   const getStatIcon = (iconName) => {
     switch (iconName) {
@@ -83,10 +102,9 @@ export function StudentDashboard() {
     }
   };
 
-  const filteredApplications =
-    filterStatus === 'all'
-      ? MOCK_STUDENT_APPLICATIONS
-      : MOCK_STUDENT_APPLICATIONS.filter((app) => app.status === filterStatus);
+  const filteredApplications = filterStatus === 'all'
+    ? applications
+    : applications.filter((app) => app.status === filterStatus);
 
   return (
     <div className="space-y-8">
@@ -95,7 +113,7 @@ export function StudentDashboard() {
         <div className="flex items-center gap-2">
           <Badge variant="primary" size="sm">Mock Data</Badge>
           <span>
-            Viewing sample student dashboard. Backend connection will be established in upcoming tasks.
+            This dashboard combines sample records with applications saved in this browser. A backend is not connected yet.
           </span>
         </div>
         <Link
@@ -111,18 +129,18 @@ export function StudentDashboard() {
         <div className="space-y-2">
           <div className="flex items-center gap-2.5">
             <h2 className="text-2xl sm:text-3xl font-bold text-text-primary tracking-tight">
-              Welcome back, {MOCK_STUDENT_PROFILE.fullName.split(' ')[0]}! 👋
+              Welcome back, {dashboardName.split(' ')[0]}! 👋
             </h2>
           </div>
           <p className="text-sm text-text-secondary max-w-2xl leading-relaxed">
-            You have <strong className="text-text-primary">5 active applications</strong> under review and <strong className="text-primary-700 font-semibold">2 new interview updates</strong> waiting for your attention.
+            You have <strong className="text-text-primary">{pendingCount} applications</strong> in progress and <strong className="text-primary-700 font-semibold">{acceptedCount} accepted offers</strong>.
           </p>
           <div className="flex flex-wrap items-center gap-2 pt-1 text-xs text-text-muted">
-            <span className="font-medium text-text-secondary">{MOCK_STUDENT_PROFILE.university}</span>
+            <span className="font-medium text-text-secondary">{profile.university}</span>
             <span>•</span>
-            <span>{MOCK_STUDENT_PROFILE.degree}</span>
+            <span>{profile.degree}</span>
             <span>•</span>
-            <span>Class of {MOCK_STUDENT_PROFILE.graduationYear}</span>
+            <span>Class of {profile.graduationYear}</span>
           </div>
         </div>
 
@@ -148,7 +166,7 @@ export function StudentDashboard() {
           Application Overview
         </h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {MOCK_STUDENT_STATS.map((stat) => (
+          {dashboardStats.map((stat) => (
             <Card key={stat.id} variant="bordered" padding="md" className="hover:shadow-xs transition-shadow">
               <div className="flex items-center justify-between mb-3">
                 <span className="text-xs font-medium text-text-secondary">{stat.label}</span>
@@ -186,7 +204,7 @@ export function StudentDashboard() {
 
           {/* Status Filter Tabs */}
           <div className="flex items-center gap-1.5 p-1 bg-secondary-100 rounded-lg text-xs font-medium self-start sm:self-auto">
-            {['all', 'under_review', 'accepted', 'rejected'].map((status) => (
+            {['all', 'submitted', 'under_review', 'interviewing', 'accepted', 'rejected'].map((status) => (
               <button
                 key={status}
                 type="button"
@@ -250,9 +268,9 @@ export function StudentDashboard() {
                     </td>
 
                     <td className="py-3.5 px-4 text-right">
-                      <Button variant="ghost" size="sm" className="text-xs font-semibold text-primary-600 hover:text-primary-700">
+                      <Link to={ROUTES.STUDENT_APPLICATIONS} className="text-xs font-semibold text-primary-600 hover:text-primary-700">
                         Details
-                      </Button>
+                      </Link>
                     </td>
                   </tr>
                 ))}
@@ -265,7 +283,7 @@ export function StudentDashboard() {
               to={ROUTES.STUDENT_APPLICATIONS}
               className="text-xs font-semibold text-primary-600 hover:text-primary-700 inline-flex items-center gap-1.5"
             >
-              <span>View all 12 submitted applications</span>
+              <span>View all {applications.length} applications</span>
               <ArrowRightIcon />
             </Link>
           </div>
