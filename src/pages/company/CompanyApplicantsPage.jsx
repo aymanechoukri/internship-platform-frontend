@@ -47,6 +47,7 @@ export function CompanyApplicantsPage() {
       anchor.click();
       anchor.remove();
       URL.revokeObjectURL(url);
+      notify("Candidate CV downloaded.", "success");
     } catch (err) { setError(err.message || "Unable to download this CV."); notify(err.message || "Unable to download this CV.", "error"); }
     finally { setDownloadingId(""); }
   };
