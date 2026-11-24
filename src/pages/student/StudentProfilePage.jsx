@@ -13,7 +13,7 @@ export function StudentProfilePage() {\n  const { notify } = useFeedback();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
-  const [notice, setNotice] = useState("");
+  const [, setNotice] = useState("");
 
   useEffect(() => {
     let active = true;
